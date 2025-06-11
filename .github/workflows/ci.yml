@@ -1,0 +1,29 @@
+name: PrintQA CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, qa ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  test-and-analyze:
+    name: Testes e Análise de Qualidade
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar Dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Rodar Testes com Cobertura
+        run: pytest --cov=printqa
