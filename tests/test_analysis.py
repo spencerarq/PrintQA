@@ -1,12 +1,12 @@
 # tests/test_analysis.py
 import pytest
 from printqa.analysis import analyze_file
-
+@pytest.mark.testrail(ids=['C2'])
 def test_analyze_file_returns_a_dictionary():
     result = analyze_file("tests/fixtures/cube.stl") 
     assert isinstance(result, dict)
 
-def test_analyze_file_raises_error_for_nonexistent_file():
+def test_analyze_file_raises_error_for_nonexistent_fSile():
     """ Garante que uma exceção FileNotFoundError é levantada se o arquivo não existir. """
     with pytest.raises(FileNotFoundError):
         analyze_file("nonexistent_file.stl")

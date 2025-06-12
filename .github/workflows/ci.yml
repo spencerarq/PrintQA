@@ -1,3 +1,4 @@
+# .github/workflows/ci.yml
 name: PrintQA CI/CD Pipeline
 
 on:
@@ -20,10 +21,29 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar Dependências
+      - name: Instalar Dependências (pytest, pytest-cov, e trcli)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt # Certifique-se de ter pytest e pytest-cov
+          pip install trcli             # Instala o TestRail CLI
 
-      - name: Rodar Testes com Cobertura
-        run: pytest --cov=printqa
+      # --- PASSO 1: Rodar Testes Pytest e Gerar Relatório JUnit XML ---
+      - name: Rodar Testes e Gerar Relatório JUnit
+        run: |
+          pytest --cov=printqa --junitxml "junit-report.xml" "./tests" # GERA APENAS O RELATÓRIO
+
+      # --- PASSO 2: Enviar Resultados para TestRail usando TestRail CLI (trcli) ---
+      - name: Enviar Resultados para TestRail via CLI
+        env:
+          TESTRAIL_HOST: ${{ secrets.TESTRAIL_URL }}
+          TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USER }}
+          TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} # Usando TESTRAIL_KEY como a senha/API Key
+        run: |
+          # O comando TRCLI AGORA ESTÁ EXATAMENTE COMO O QUE FUNCIONOU NO TERMINAL
+          trcli -y \
+            -h "${{ env.TESTRAIL_HOST }}" \
+            --project "PrintQA" \
+            --username "${{ env.TESTRAIL_USERNAME }}" \
+            --password "${{ env.TESTRAIL_PASSWORD }}" \
+            parse_junit --title "Pytest Run - ${{ github.run_id }}" \ # Usando github.run_id para o título
+            -f junit-report.xml
