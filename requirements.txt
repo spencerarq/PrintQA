@@ -7,7 +7,7 @@ pytest-xdist>=3.0.0,<4.0.0
 trcli>=1.9.13
 
 # TestRail integration com versão específica para compatibilidade
-pytest-testrail>=2.10.0,<3.0.0
+pytest-testrail>=2.9.0
 requests>=2.28.0,<3.0.0
 
 # Development and code quality
