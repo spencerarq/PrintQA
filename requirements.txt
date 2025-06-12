@@ -28,7 +28,8 @@ pytest-json-report>=1.5.0,<2.0.0
 packaging>=21.0
 pluggy>=1.0.0,<2.0.0
 
-# Project specific dependencies (adicione conforme necessário)
-# numpy>=1.24.0
-# pandas>=2.0.0
-# matplotlib>=3.6.0
+# API
+fastapi
+uvicorn[standard]
+httpx
+python-multipart
