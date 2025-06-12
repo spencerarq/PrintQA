@@ -37,7 +37,7 @@ jobs:
         env:
           TESTRAIL_HOST: ${{ secrets.TESTRAIL_URL }}
           TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USER }}
-          TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} # Usando TESTRAIL_KEY como a senha/API Key
+          TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} 
         run: |
           # O comando TRCLI AGORA ESTÁ EXATAMENTE COMO O QUE FUNCIONOU NO TERMINAL
           trcli -y \
@@ -45,5 +45,5 @@ jobs:
             --project "PrintQA" \
             --username "${{ env.TESTRAIL_USERNAME }}" \
             --password "${{ env.TESTRAIL_PASSWORD }}" \
-            parse_junit --title "Pytest Run - ${{ github.run_id }}" \ # Usando github.run_id para o título
+            parse_junit --title "Pytest Run - ${{ github.run_id }}" \ 
             -f junit-report.xml
