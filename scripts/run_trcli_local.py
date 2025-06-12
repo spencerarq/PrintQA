@@ -7,30 +7,27 @@ import datetime
 # Carrega as variáveis do arquivo .env na raiz do projeto
 load_dotenv()
 
-# Monta o comando trcli usando as variáveis de ambiente
-# Lembre-se que trcli espera TESTRAIL_HOST, TESTRAIL_USERNAME, TESTRAIL_PASSWORD (ou TESTRAIL_API_KEY)
+# Comando TRCLI
 trcli_command = [
     "trcli",
     "-y",
-    "-h", os.getenv("TESTRAIL_URL"), # TESTRAIL_URL do .env mapeado para -h
+    "-h", os.getenv("TESTRAIL_URL"), 
     "--project", "PrintQA", # Ou os.getenv("TESTRAIL_PROJECT_NAME") se tiver no .env
     "--username", os.getenv("TESTRAIL_USER"),
-    "--password", os.getenv("TESTRAIL_KEY"), # Ou TESTRAIL_API_KEY se usar
+    "--password", os.getenv("TESTRAIL_KEY"), 
     "parse_junit",
     "--title", f"Pytest Run - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
     "-f", "junit-report.xml"
     ]
 
-# Adicione a lógica para usar TESTRAIL_PROJECT_ID/SUITE_ID se necessário,
-# embora o trcli não os aceite diretamente na linha de comando para parse_junit.
-# Ele usará o nome do projeto.
+
 
 # Exibe o comando que será executado (para depuração)
 print(f"Executando TRCLI: {' '.join(trcli_command)}")
 
 # Executa o comando trcli como um subprocesso
 try:
-    # Use subprocess.run para executar o comando e capturar a saída
+    
     result = subprocess.run(trcli_command, check=True, capture_output=True, text=True, shell=True)
     print("Saída do TRCLI:")
     print(result.stdout)

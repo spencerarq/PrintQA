@@ -42,7 +42,7 @@ Para validar a lógica de análise implementada até o momento:
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/spencerarq/PrintQA.git](https://github.com/spencerarq/PrintQA.git)
+    git clone [/PrintQA.git](https://github.com/spencerarq/PrintQA.git)
     cd PrintQA
     ```
 
