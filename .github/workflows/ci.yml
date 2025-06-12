@@ -24,8 +24,8 @@ jobs:
       - name: Instalar Dependências (pytest, pytest-cov, e trcli)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt # Certifique-se de ter pytest e pytest-cov
-          pip install trcli             # Instala o TestRail CLI
+          pip install -r requirements.txt 
+          pip install trcli             
 
       # --- PASSO 1: Rodar Testes Pytest e Gerar Relatório JUnit XML ---
       - name: Rodar Testes e Gerar Relatório JUnit
@@ -39,11 +39,11 @@ jobs:
           TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USER }}
           TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} 
         run: |
-          # O comando TRCLI AGORA ESTÁ EXATAMENTE COMO O QUE FUNCIONOU NO TERMINAL
+
           trcli -y \
             -h "${{ env.TESTRAIL_HOST }}" \
             --project "PrintQA" \
             --username "${{ env.TESTRAIL_USERNAME }}" \
             --password "${{ env.TESTRAIL_PASSWORD }}" \
-            parse_junit --title "Pytest Run - ${{ github.run_id }}" \ 
+            parse_junit --title "Pytest Run - ${{ github.run_id }}" \
             -f junit-report.xml
