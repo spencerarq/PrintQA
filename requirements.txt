@@ -10,6 +10,9 @@ trcli>=1.9.13
 pytest-testrail>=2.9.0
 requests>=2.28.0,<3.0.0
 
+# Dependências do seu projeto PrintQA
+trimesh>=4.6.11
+
 # Development and code quality
 black>=23.0.0,<24.0.0
 flake8>=6.0.0,<7.0.0
