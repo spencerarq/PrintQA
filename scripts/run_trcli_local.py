@@ -2,30 +2,23 @@
 import os
 import subprocess
 import sys
+import datetime 
 from dotenv import load_dotenv
-import datetime
-# Carrega as variáveis do arquivo .env na raiz do projeto
+
 load_dotenv()
 
-# Comando TRCLI
 trcli_command = [
     "trcli",
     "-y",
-    "-h", os.getenv("TESTRAIL_URL"), 
-    "--project", "PrintQA", # Ou os.getenv("TESTRAIL_PROJECT_NAME") se tiver no .env
+    "-h", os.getenv("TESTRAIL_URL"),
+    "--project", "PrintQA",
     "--username", os.getenv("TESTRAIL_USER"),
-    "--password", os.getenv("TESTRAIL_KEY"), 
+    "--password", os.getenv("TESTRAIL_KEY"),
     "parse_junit",
     "--title", f"Pytest Run - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
     "-f", "junit-report.xml"
-    ]
+]
 
-
-
-# Exibe o comando que será executado (para depuração)
-print(f"Executando TRCLI: {' '.join(trcli_command)}")
-
-# Executa o comando trcli como um subprocesso
 try:
     
     result = subprocess.run(trcli_command, check=True, capture_output=True, text=True, shell=True)

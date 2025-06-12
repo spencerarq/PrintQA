@@ -1,13 +1,13 @@
 # tests/test_api.py
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock # <<<< ADICIONAR MagicMock
-import os # <<<< ADICIONAR OS se ainda não estiver
+from unittest.mock import patch, MagicMock
+import os
+import io 
 
-# Importa a instância 'app' do seu arquivo main.py
 from printqa.main import app
+from printqa.schemas import AnalysisResult, ErrorResponse
 
-# Cria um cliente de teste para sua aplicação FastAPI
 client = TestClient(app)
 
 # Teste 1: Verificar se o endpoint raiz retorna a mensagem esperada
@@ -16,7 +16,7 @@ def test_read_root():
     assert response.status_code == 200
     assert response.json() == {"message": "Bem-vindo à API PrintQA! Acesse /docs para a documentação."}
 
-# Teste 2: Lida com arquivo de formato inválido (já deve estar passando)
+# Teste 2: Lida com arquivo de formato inválido (espera 400 e ErrorResponse)
 def test_analyze_model_endpoint_invalid_file_format():
     invalid_file_content = b"This is not a real STL file."
     
@@ -26,64 +26,62 @@ def test_analyze_model_endpoint_invalid_file_format():
     )
     
     assert response.status_code == 400
-    assert "detail" in response.json()
-    assert "Falha ao carregar o arquivo" in response.json()["detail"]
+    error_response = ErrorResponse(**response.json())
+    assert "Falha ao carregar o arquivo" in error_response.detail
 
-# --- NOVOS TESTES PARA COBERTURA 100% DO main.py ---
 
+# Teste 3: Testar o endpoint de análise com um arquivo STL válido (CUBO ESTANQUE)
+def test_analyze_model_endpoint_valid_stl_file():
+    """ Verifica se a API analisa corretamente um arquivo STL válido (cubo estanque)
+    e retorna o esquema e resultados esperados. """
+    perfect_cube_stl_path = os.path.join(os.path.dirname(__file__), 'fixtures', 'cube_perfect.stl')
+
+    with open(perfect_cube_stl_path, "rb") as f:
+        valid_stl_content = f.read()
+
+    valid_file_stream = io.BytesIO(valid_stl_content)
+
+    response = client.post(
+        "/analyze_model/",
+        files={"file": ("valid_cube.stl", valid_file_stream, "application/octet-stream")}
+    )
+    
+    assert response.status_code == 200
+    analysis_result = AnalysisResult(**response.json())
+    assert isinstance(analysis_result.is_watertight, bool)
+    assert isinstance(analysis_result.has_inverted_faces, bool)
+    assert analysis_result.is_watertight is True
+    assert analysis_result.has_inverted_faces is False
+
+# Teste 4: Erro interno inesperado no upload/cópia
 def test_analyze_model_endpoint_internal_server_error_on_upload_copy():
-    """
-    Testa se a API retorna 500 para erros internos inesperados durante o upload/cópia do arquivo.
-    Cobre o 'except Exception as e:' geral no main.py.
-    """
-    # Mocka shutil.copyfileobj para levantar uma exceção inesperada
     with patch('shutil.copyfileobj') as mock_copyfileobj:
-        mock_copyfileobj.side_effect = Exception("Simulated disk write error")
-        
-        # O arquivo em si não importa, pois a cópia falhará
+        mock_copyfileobj.side_effect = Exception("Simulated disk write error during copy")
         dummy_file_content = b"dummy content"
         response = client.post(
             "/analyze_model/",
             files={"file": ("dummy.txt", dummy_file_content, "text/plain")}
         )
-        
         assert response.status_code == 500
         assert "Ocorreu um erro interno no servidor" in response.json()["detail"]
 
+# Teste 5: Erro interno inesperado na análise (mockando analyze_file)
 def test_analyze_model_endpoint_internal_server_error_on_analysis_unexpected_exception():
-    """
-    Testa se a API retorna 500 para erros inesperados vindos da função analyze_file,
-    que não são capturados pelo retorno de 'error' (ex: um erro de tipo inesperado).
-    Cobre o 'except Exception as e:' geral no main.py.
-    """
-    # Mocka a função analyze_file para levantar uma exceção que não é um dicionário {"error": ...}
     with patch('printqa.main.analyze_file') as mock_analyze_file:
         mock_analyze_file.side_effect = TypeError("Erro de tipo inesperado na análise")
-        
-        # O arquivo em si não importa, pois analyze_file será mockado
         dummy_file_content = b"dummy content"
         response = client.post(
             "/analyze_model/",
             files={"file": ("dummy.txt", dummy_file_content, "text/plain")}
         )
-        
         assert response.status_code == 500
         assert "Ocorreu um erro interno no servidor" in response.json()["detail"]
 
-
+# Teste 6: Erro na limpeza do arquivo temporário
 def test_analyze_model_endpoint_file_cleanup_error():
-    """
-    Testa o tratamento de erro no bloco 'finally' ao remover o arquivo temporário.
-    Cobre o 'except OSError as e:' dentro do 'finally'.
-    """
-    # Cria um mock para a função os.remove
     with patch('os.remove') as mock_os_remove:
-        # Faz com que os.remove levante um OSError
         mock_os_remove.side_effect = OSError("Permissão negada ao remover arquivo")
-        
-        # Usa um arquivo válido para que a análise e o retorno 200 aconteçam
-        # Conteúdo STL mínimo válido (para que analyze_file não levante ValueError)
-        valid_stl_content = b"""
+        valid_stl_content_for_cleanup = b"""
             solid model
               facet normal 0 0 1
                 outer loop
@@ -96,13 +94,21 @@ def test_analyze_model_endpoint_file_cleanup_error():
         """
         response = client.post(
             "/analyze_model/",
-            files={"file": ("valid.stl", valid_stl_content, "application/octet-stream")}
+            files={"file": ("valid.stl", io.BytesIO(valid_stl_content_for_cleanup), "application/octet-stream")}
         )
-        
-        # A análise deve passar (retorna 200), mas o erro de limpeza será logado.
         assert response.status_code == 200 
-        assert "is_watertight" in response.json() # Verifica que a análise ocorreu
-        
-        # O importante aqui é que mock_os_remove.called seja True, indicando que o os.remove foi tentado
+        assert "is_watertight" in response.json()
         mock_os_remove.assert_called_once()
-        # O erro de limpeza é capturado pelo logger, não alterando o status HTTP da resposta principal.
+
+# Teste 7: FileNotFoundError no main.py 
+def test_analyze_model_endpoint_file_not_found_error_on_upload_creation():
+    with patch('builtins.open') as mock_open:
+        mock_open.side_effect = FileNotFoundError("Simulated directory access error")
+        dummy_file_content = b"dummy content"
+        response = client.post(
+            "/analyze_model/",
+            files={"file": ("dummy.txt", dummy_file_content, "text/plain")}
+        )
+        assert response.status_code == 404
+        assert "Arquivo não encontrado no servidor" in response.json()["detail"]
+        mock_open.assert_called()
