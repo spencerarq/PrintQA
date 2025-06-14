@@ -29,7 +29,7 @@ packaging>=21.0
 pluggy>=1.0.0,<2.0.0
 
 # API
-fastapi
-uvicorn[standard]
+fastapi>=0.100.0,<1.0.0  # <<<<< Adicionar versão mínima para FastAPI
+uvicorn[standard]>=0.20.0,<1.0.0 # <<<<< Adicionar versão mínima para Uvicorn
 httpx
 python-multipart

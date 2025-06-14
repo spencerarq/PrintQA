@@ -1,6 +1,7 @@
 # printqa/main.py
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.responses import JSONResponse
+from typing import Annotated
 from .analysis import analyze_file
 import shutil
 import os
@@ -20,42 +21,89 @@ app = FastAPI(
 async def read_root():
     return {"message": "Bem-vindo à API PrintQA! Acesse /docs para a documentação."}
 
+# --- Constantes de validação ---
+MAX_FILE_SIZE_MB = 20  # Exemplo: 20 MB
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024  # Converte MB para Bytes
+
+ALLOWED_MIME_TYPES = [
+    "application/octet-stream",  # Comum para arquivos STL binários
+    "model/stl",                 # Outro MIME type comum para STL
+    "text/plain",                # Para STL ASCII
+]
+
 @app.post(
     "/analyze_model/",
     response_model=AnalysisResult,
     responses={
-        400: {"model": ErrorResponse, "description": "Erro de requisição inválida ou arquivo não processável."},
-        500: {"model": ErrorResponse, "description": "Erro interno do servidor."}
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponse, "description": "Erro de requisição inválida ou arquivo não processável."},
+        413: {"model": ErrorResponse, "description": "Arquivo muito grande."},  # Usando código numérico
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: {"model": ErrorResponse, "description": "Tipo de arquivo não suportado."},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": ErrorResponse, "description": "Erro interno do servidor."}
     }
 )
-async def analyze_model(file: UploadFile = File(...)):
+async def analyze_model(
+    file: Annotated[
+        UploadFile,
+        File(..., description="Arquivo de modelo 3D (e.g., STL) para análise.")
+    ]
+):
+    """
+    Recebe um arquivo de modelo 3D (e.g., STL) e retorna um relatório de análise de qualidade.
+    Realiza validações de MIME Type e Tamanho antes da análise.
+    """
+    # --- 1. Validação de MIME Type ---
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        logger.warning(f"Upload de arquivo com tipo MIME não permitido: {file.content_type}")
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Tipo de arquivo '{file.content_type}' não suportado. Apenas tipos {', '.join(ALLOWED_MIME_TYPES)} são permitidos."
+        )
+
+    # Lendo o conteúdo completo do arquivo para validação de tamanho.
+    try:
+        file_contents = await file.read()
+    except Exception as e:
+        logger.error(f"Erro ao ler conteúdo do arquivo de upload: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao processar o arquivo de upload.")
+
+    # --- 2. Validação de Tamanho do Arquivo ---
+    if len(file_contents) > MAX_FILE_SIZE_BYTES:
+        logger.warning(f"Upload de arquivo muito grande: {len(file_contents)} bytes (limite: {MAX_FILE_SIZE_BYTES} bytes)")
+        raise HTTPException(
+            status_code=413,  # Payload Too Large
+            detail=f"Arquivo excede o tamanho máximo permitido de {MAX_FILE_SIZE_MB} MB."
+        )
+
+    # 3. Salvar o arquivo temporariamente (APÓS todas as validações iniciais)
     upload_dir = "temp_uploads"
     os.makedirs(upload_dir, exist_ok=True)
     
     file_path = os.path.join(upload_dir, file.filename)
     
     try:
+        # Escrever o conteúdo já lido para o arquivo
         with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            buffer.write(file_contents)
         
+        # 4. Chamar função de análise
         analysis_result = analyze_file(file_path)
 
         if "error" in analysis_result:
             logger.warning(f"Erro na análise de arquivo: {analysis_result['error']}")
-            raise HTTPException(status_code=400, detail=analysis_result["error"])
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=analysis_result["error"])
             
-        return JSONResponse(content=analysis_result, status_code=200)
+        return JSONResponse(content=analysis_result, status_code=status.HTTP_200_OK)
 
     except HTTPException:
         raise
 
     except FileNotFoundError as e:
         logger.error(f"Erro de arquivo não encontrado inesperado: {e}")
-        raise HTTPException(status_code=404, detail=f"Arquivo não encontrado no servidor: {e}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Arquivo não encontrado no servidor: {e}")
 
     except Exception as e:
         logger.exception(f"Ocorreu um erro interno inesperado no servidor: {e}")
-        raise HTTPException(status_code=500, detail=f"Ocorreu um erro interno no servidor: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Ocorreu um erro interno no servidor: {e}")
     finally:
         if os.path.exists(file_path):
             try:

@@ -55,8 +55,8 @@ def test_analyze_model_endpoint_valid_stl_file():
 
 # Teste 4: Erro interno inesperado no upload/cópia
 def test_analyze_model_endpoint_internal_server_error_on_upload_copy():
-    with patch('shutil.copyfileobj') as mock_copyfileobj:
-        mock_copyfileobj.side_effect = Exception("Simulated disk write error during copy")
+    with patch('builtins.open') as mock_open:
+        mock_open.side_effect = Exception("Simulated disk write error during copy")
         dummy_file_content = b"dummy content"
         response = client.post(
             "/analyze_model/",
@@ -112,3 +112,45 @@ def test_analyze_model_endpoint_file_not_found_error_on_upload_creation():
         assert response.status_code == 404
         assert "Arquivo não encontrado no servidor" in response.json()["detail"]
         mock_open.assert_called()
+
+# Teste 8: Validação de MIME Type (retorna 415 Unsupported Media Type)
+def test_analyze_model_endpoint_unsupported_mime_type():
+    """
+    Verifica se a API retorna 415 para tipos de arquivo (MIME Type) não suportados.
+    """
+    response = client.post(
+        "/analyze_model/",
+        files={"file": ("image.png", b"dummy_image_data", "image/png")}
+    )
+    assert response.status_code == 415
+    assert "Tipo de arquivo" in response.json()["detail"]
+    assert "não suportado" in response.json()["detail"]
+
+# Teste 9: Validação de Tamanho do Arquivo (retorna 413 Payload Too Large)
+def test_analyze_model_endpoint_payload_too_large():
+    """
+    Verifica se a API retorna 413 para arquivos que excedem o tamanho máximo permitido.
+    """
+    # Cria um conteúdo que simula um arquivo muito grande (ex: 25 MB, se o limite for 20 MB)
+    large_file_content = b"a" * (25 * 1024 * 1024)  # 25 MB de bytes 'a'
+    
+    response = client.post(
+        "/analyze_model/",
+        files={"file": ("large_model.stl", large_file_content, "application/octet-stream")}
+    )
+    assert response.status_code == 413
+    assert "Arquivo excede o tamanho máximo" in response.json()["detail"]
+
+# Teste 10: Validação adicional - arquivo vazio
+def test_analyze_model_endpoint_empty_file():
+    """
+    Testa o cenário onde um arquivo vazio é enviado.
+    """
+    response = client.post(
+        "/analyze_model/",
+        files={"file": ("empty.stl", b"", "application/octet-stream")}
+    )
+    
+    # Arquivo vazio deve ser rejeitado na análise
+    assert response.status_code == 400
+    assert "Falha ao carregar o arquivo" in response.json()["detail"]
