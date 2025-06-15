@@ -48,7 +48,7 @@ jobs:
       # Isso garante que a string seja formada corretamente.
       # Removida a construção literal que estava causando erro de sintaxe.
       # A DATABASE_URL será construída no script Python que a utiliza ou pode ser construída aqui:
-      DATABASE_URL: "mysql+mysqlconnector://${{ env.DB_USER_CI }}:${{ env.DB_PASSWORD_CI }}@${{ env.DB_HOST_CI }}:${{ env.DB_PORT_CI }}/${{ env.DB_NAME_CI }}"
+      DATABASE_URL: "mysql+mysqlconnector://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}"
 
     steps:
       - name: Checkout do Repositório
