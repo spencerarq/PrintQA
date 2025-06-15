@@ -1,0 +1,25 @@
+# dockerfile.tests
+
+FROM python:3.12-slim-bookworm
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    default-libmysqlclient-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+COPY pytest.ini .
+COPY conftest.py .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./printqa ./printqa
+COPY ./tests ./tests
+COPY ./scripts ./scripts
+
+COPY ./app/run_local_tests.sh .
+RUN chmod +x run_local_tests.sh
+
+RUN mkdir -p /app/reports

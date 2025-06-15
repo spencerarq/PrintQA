@@ -12,42 +12,32 @@ jobs:
     name: Testes e Análise de Qualidade
     runs-on: ubuntu-latest
     
-    # --- Adiciona um serviço de banco de dados (MySQL) ---
+    # --- Adiciona banco de dados (MySQL MariaDB) ---
     services:
       mysql:
-        image: mysql:8.0 # Ou mariadb:latest se o seu DB local for MariaDB
+        image: mysql:8.0 
         env:
-          # Senha para o usuário root do DB do container
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }} # Este Secret deve existir no GitHub
-          # Nome do banco de dados a ser criado automaticamente
-          MYSQL_DATABASE: test_printqa_db # Isso pode ser um Secret, ex: ${{ secrets.DB_NAME_CI }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: test_printqa_db
         ports:
-          - 3306:3306 # Mapeia a porta do container para o host do runner (acessível em 127.0.0.1)
-        options: >- # Opções para garantir que o MySQL esteja pronto antes de continuar
+          - 3306:3306 
+        options: >- 
           --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
 
-    # --- Variáveis de ambiente para o JOB (acessíveis em todos os steps) ---
     env:
-      # TestRail Secrets (já devem estar configurados no GitHub)
+      
       TESTRAIL_HOST: ${{ secrets.TESTRAIL_URL }}
       TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USER }}
-      TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} # Assumindo TESTRAIL_KEY é sua API Key/Senha
+      TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} 
 
-      # Componentes do DATABASE_URL, injetados a partir dos Secrets
-      # Estes são usados para construir a DATABASE_URL no Python.
-      DB_USER_CI: ${{ secrets.DB_USER }} # Exemplo: 'root' para o container CI
-      DB_PASSWORD_CI: ${{ secrets.DB_PASSWORD }} # Senha para o usuário do container
-      DB_HOST_CI: mysql # O hostname do serviço Docker é 'mysql'
-      DB_PORT_CI: 3306 # Porta do serviço Docker
-      DB_NAME_CI: test_printqa_db # Nome do banco de dados no container
-
-      # CONSTRUÇÃO DA DATABASE_URL FINAL A PARTIR DOS COMPONENTES (para o Python usar)
-      # Isso garante que a string seja formada corretamente.
-      # Removida a construção literal que estava causando erro de sintaxe.
-      # A DATABASE_URL será construída no script Python que a utiliza ou pode ser construída aqui:
+      DB_USER: ${{ secrets.DB_USER }} 
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }} 
+      DB_HOST: mysql 
+      DB_PORT: 3306 
+      DB_NAME: test_printqa_db 
       DATABASE_URL: "mysql+mysqlconnector://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}"
 
     steps:

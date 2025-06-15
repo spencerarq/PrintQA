@@ -159,16 +159,16 @@ def test_database_url_not_defined_raises_error():
     # Mock os.getenv para retornar None quando DATABASE_URL é solicitado
     with patch('printqa.database.os.getenv', side_effect=lambda key, default=None: None if key == "DATABASE_URL" else os.environ.get(key, default)):
         if 'printqa.database' in sys.modules:
-            del sys.modules['printqa.database'] # Garante reimportação
+            del sys.modules['printqa.database']
         
         with pytest.raises(ValueError, match="DATABASE_URL não está definida"):
-            from printqa.database import engine as temp_engine # Acessar engine força a lógica de inicialização
-            _ = temp_engine # Apenas para usar a variável e evitar linting
+            from printqa.database import engine as temp_engine
+            _ = temp_engine 
 
     if original_db_url is not None:
         os.environ["DATABASE_URL"] = original_db_url
     if 'printqa.database' in sys.modules:
-        del sys.modules['printqa.database'] # Limpa para o próximo teste
+        del sys.modules['printqa.database']
 
 def test_get_db_yields_session_and_closes():
     from printqa.database import get_db

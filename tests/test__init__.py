@@ -25,7 +25,6 @@ def load_env_variables():
             return True
         return False
 
-# Carrega as variáveis ANTES de importar qualquer módulo
 load_env_variables()
 
 def test_init_database_success():
@@ -77,8 +76,8 @@ def test_check_config_with_all_vars():
                 result = check_config()
                 
                 assert result is True
-                # Verifica se printou as configurações
-                assert mock_print.call_count >= 8  # Header + 7 configs
+                
+                assert mock_print.call_count >= 8 
 
 def test_check_config_missing_database_url():
     """Testa verificação com DATABASE_URL ausente."""
@@ -115,9 +114,8 @@ def test_check_config_partial_vars():
             with patch('dotenv.load_dotenv'):
                 result = check_config()
                 
-                assert result is True  # Apenas DATABASE_URL é obrigatória
+                assert result is True
                 
-                # Verifica que printou ✓ para DATABASE_URL e ✗ para outras
                 calls = [str(call) for call in mock_print.call_args_list]
                 database_call = next((call for call in calls if 'DATABASE_URL' in call), None)
                 assert database_call is not None

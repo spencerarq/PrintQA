@@ -23,7 +23,7 @@ def check_config():
     import os
     from dotenv import load_dotenv
     
-    # Carrega .env se disponível
+
     load_dotenv()
     
     config_items = {

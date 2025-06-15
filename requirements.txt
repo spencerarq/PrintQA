@@ -1,30 +1,24 @@
-# requirements.txt - Dependências do projeto PrintQA
+# requirements.txt
 
-# Core testing framework
+# Framework central
 pytest>=8.0.0,<9.0.0
 pytest-cov>=4.0.0,<5.0.0
 pytest-xdist>=3.0.0,<4.0.0
 trcli>=1.9.13
 
-# TestRail integration com versão específica para compatibilidade
+# Integração TestRail 
 pytest-testrail>=2.9.0
 requests>=2.28.0,<3.0.0
 
-# Dependências do seu projeto PrintQA
+# Utilitários
 trimesh>=4.6.11
-
-# Development and code quality
 black>=23.0.0,<24.0.0
 flake8>=6.0.0,<7.0.0
 isort>=5.12.0,<6.0.0
 mypy>=1.0.0,<2.0.0
-
-# Additional testing utilities
 pytest-mock>=3.10.0,<4.0.0
 pytest-html>=3.1.0,<4.0.0
 pytest-json-report>=1.5.0,<2.0.0
-
-# Utilities for better error handling
 packaging>=21.0
 pluggy>=1.0.0,<2.0.0
 
@@ -35,7 +29,6 @@ httpx
 python-multipart
 python-dotenv
 
-# Dependências do Banco de Dados
+# Dependências DB
 SQLAlchemy>=2.0.0,<3.0.0
-mysql-connector-python>=8.0.0,<9.0.0 # Este é o driver para MariaDB/MySQL
-# PyMySQL>=1.0.0,<2.0.0 # Comente ou remova esta linha se for usar mysql-connector-python
+mysql-connector-python>=8.0.0,<9.0.0
