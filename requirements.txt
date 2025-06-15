@@ -29,7 +29,13 @@ packaging>=21.0
 pluggy>=1.0.0,<2.0.0
 
 # API
-fastapi>=0.100.0,<1.0.0  # <<<<< Adicionar versão mínima para FastAPI
-uvicorn[standard]>=0.20.0,<1.0.0 # <<<<< Adicionar versão mínima para Uvicorn
+fastapi>=0.100.0,<1.0.0
+uvicorn[standard]>=0.20.0,<1.0.0
 httpx
 python-multipart
+python-dotenv
+
+# Dependências do Banco de Dados
+SQLAlchemy>=2.0.0,<3.0.0
+mysql-connector-python>=8.0.0,<9.0.0 # Este é o driver para MariaDB/MySQL
+# PyMySQL>=1.0.0,<2.0.0 # Comente ou remova esta linha se for usar mysql-connector-python

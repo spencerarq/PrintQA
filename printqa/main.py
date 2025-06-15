@@ -63,8 +63,9 @@ async def analyze_model(
     try:
         file_contents = await file.read()
     except Exception as e:
-        logger.error(f"Erro ao ler conteúdo do arquivo de upload: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Erro ao processar o arquivo de upload.")
+        logger.debug("Debug: Entrou no bloco de exceção geral do main.py.") # <<<<< ADICIONE ESTA LINHA
+        logger.exception(f"Ocorreu um erro interno inesperado no servidor: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Ocorreu um erro interno no servidor: {e}")
 
     # --- 2. Validação de Tamanho do Arquivo ---
     if len(file_contents) > MAX_FILE_SIZE_BYTES:
