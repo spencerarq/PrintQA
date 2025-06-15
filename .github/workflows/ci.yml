@@ -12,6 +12,32 @@ jobs:
     name: Testes e Análise de Qualidade
     runs-on: ubuntu-latest
 
+    # --- Adiciona um serviço de banco de dados (MySQL) ---
+    services:
+      mysql:
+        image: mysql:8.0 # Ou mariadb:latest se o seu DB local for MariaDB
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword # Senha para o usuário root do DB do container
+          MYSQL_DATABASE: test_printqa_db # Nome do banco de dados a ser criado automaticamente
+        ports:
+          - 3306:3306 # Mapeia a porta do container para o host do runner (acessível em 127.0.0.1)
+        options: >- # Opções para garantir que o MySQL esteja pronto antes de continuar
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    # --- Variáveis de ambiente para o JOB (acessíveis em todos os steps) ---
+    env:
+      # TestRail Secrets (já devem estar configurados no GitHub)
+      TESTRAIL_HOST: ${{ secrets.TESTRAIL_URL }}
+      TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USER }}
+      TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} # Assumindo TESTRAIL_KEY é sua API Key/Senha
+      DATABASE_URL: "mysql+mysqlconnector://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}"
+
+      # As variáveis de ambiente DB_HOST, DB_NAME, etc., não são mais estritamente necessárias aqui
+      # se o seu código Python ou outros scripts não as utilizarem diretamente, pois já foram usadas para construir DATABASE_URL.
+      # No entanto, mantê-las não causa problemas.
     steps:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
@@ -21,25 +47,29 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar Dependências (pytest, pytest-cov, e trcli)
+      - name: Instalar Dependências (incluindo DB e CLI)
         run: |
           python -m pip install --upgrade pip
+          # Instala todas as dependências do requirements.txt
           pip install -r requirements.txt 
-          pip install trcli             
+          # Garanta que o requirements.txt agora inclui:
+          # SQLAlchemy
+          # mysql-connector-python
+          # fastapi, uvicorn[standard], httpx, python-multipart
+          # trcli
+          # python-dotenv
 
       # --- PASSO 1: Rodar Testes Pytest e Gerar Relatório JUnit XML ---
+      # Agora inclui testes de DB e API.
       - name: Rodar Testes e Gerar Relatório JUnit
         run: |
-          pytest --cov=printqa --junitxml "junit-report.xml" "./tests" # GERA APENAS O RELATÓRIO
+          # DATABASE_URL já está disponível no ambiente devido ao 'env:' do job
+          pytest --cov=printqa --junitxml="junit-report.xml" "./tests" 
 
       # --- PASSO 2: Enviar Resultados para TestRail usando TestRail CLI (trcli) ---
       - name: Enviar Resultados para TestRail via CLI
-        env:
-          TESTRAIL_HOST: ${{ secrets.TESTRAIL_URL }}
-          TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USER }}
-          TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_KEY }} 
         run: |
-
+          # As credenciais do TestRail já estão no ambiente do job.
           trcli -y \
             -h "${{ env.TESTRAIL_HOST }}" \
             --project "PrintQA" \
