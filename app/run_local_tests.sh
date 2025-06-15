@@ -66,7 +66,7 @@ if [ $? -ne 0 ]; then
     echo "AVISO: O envio para o TestRail não foi bem-sucedido (ou foi pulado devido à falta de configuração)."
     echo "Verifique a saída do script run_trcli_local.py acima para mais detalhes e as configurações do TestRail."
 else
-    echo "--- Script de envio para TestRail executado. Verifique a saída acima para o status do envio. ---"
+    echo "--- Script de envio para TestRail executado. ---"
 fi
 
 echo "--- Processo concluído com sucesso ---"
