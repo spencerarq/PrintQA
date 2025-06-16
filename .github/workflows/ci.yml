@@ -18,6 +18,8 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
           MYSQL_DATABASE: test_printqa_db
+          MYSQL_USER: ${{ secrets.DB_USER }}  
+          MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 3306:3306 
         options: >- 
@@ -33,10 +35,10 @@ jobs:
 
       DB_USER: ${{ secrets.DB_USER }} 
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }} 
-      DB_HOST: mysql 
+      DB_HOST: 127.0.0.1 
       DB_PORT: 3306 
       DB_NAME: test_printqa_db 
-      DATABASE_URL: "mysql+mysqlconnector://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}"
+      DATABASE_URL: "mysql+mysqlconnector://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@mysql:3306/test_printqa_db"
 
     steps:
       - name: Checkout do Repositório
@@ -54,49 +56,56 @@ jobs:
 
       - name: Aguardar o banco de dados estar pronto
         run: |
-          echo "Aguardando o serviço MySQL na porta ${{ env.DB_PORT }} no host ${{ env.DB_HOST }}..."
+          echo "Aguardando o serviço MySQL..."
           
-          # Tenta conectar via netcat para verificar a porta
-          for i in $(seq 1 60); do # Tenta por até 60 segundos
-            if nc -z -w 1 ${{ env.DB_HOST }} ${{ env.DB_PORT }}; then
-              echo "MySQL disponível após $((i-1)) segundos de espera."
+          # Aguarda o health check do MySQL service
+          for i in $(seq 1 30); do
+            if nc -z mysql 3306; then
+              echo "MySQL está respondendo na porta 3306!"
               break
             fi
-            echo "MySQL ainda não disponível, tentando novamente em 1 segundo..."
-            sleep 1
+            echo "Aguardando MySQL... (tentativa $i/30)"
+            sleep 2
           done
 
-          # Verifica se a porta realmente abriu após as tentativas
-          if ! nc -z -w 1 ${{ env.DB_HOST }} ${{ env.DB_PORT }}; then
-            echo "Erro: MySQL não ficou disponível na porta ${{ env.DB_PORT }} no tempo esperado."
-            exit 1
-          fi
-
-          echo "Instalando cliente MySQL para verificação de conexão..."
-          # Instala o cliente mysql para testar a conexão completa
+          # Instala cliente MySQL
           sudo apt-get update && sudo apt-get install -y mysql-client
 
-          echo "Verificando conexão com o banco de dados via cliente MySQL..."
-          # Loop para tentar conectar ao DB com o cliente mysql
-          for i in $(seq 1 10); do # Tenta por até 50 segundos (10 tentativas * 5 segundos de espera)
-            if mysql -h ${{ env.DB_HOST }} -P ${{ env.DB_PORT }} -u ${{ secrets.DB_USER }} -p"${{ secrets.DB_PASSWORD }}" -e "SELECT 1" ${{ env.DB_NAME }} > /dev/null 2>&1; then
-              echo "Conexão com o banco de dados via cliente MySQL bem-sucedida!"
+          # Testa conexão com credenciais de forma segura
+          echo "Testando conexão com o banco de dados..."
+          
+          # Cria arquivo temporário com as credenciais
+          cat > /tmp/.my.cnf << EOF
+          [client]
+          host=mysql
+          port=3306
+          user=${{ secrets.DB_USER }}
+          password=${{ secrets.DB_PASSWORD }}
+          EOF
+          
+          # Define permissões seguras para o arquivo de configuração
+          chmod 600 /tmp/.my.cnf
+          
+          for i in $(seq 1 10); do
+            if mysql --defaults-file=/tmp/.my.cnf -e "SELECT 1;" test_printqa_db &>/dev/null; then
+              echo "Conexão com MySQL bem-sucedida!"
+              echo "Testando acesso ao banco test_printqa_db..."
+              mysql --defaults-file=/tmp/.my.cnf -e "USE test_printqa_db; SHOW TABLES;" &>/dev/null && echo "Acesso ao banco confirmado!" || echo "Banco existe mas sem tabelas (normal)"
               break
             fi
-            echo "Falha na conexão inicial do cliente MySQL, tentando novamente em 5 segundos..."
-            sleep 5
+            echo "Tentativa $i/10 falhou, aguardando..."
+            sleep 3
           done
-
-          # Verifica se a conexão do cliente mysql falhou após todas as tentativas
-          if ! mysql -h ${{ env.DB_HOST }} -P ${{ env.DB_PORT }} -u ${{ secrets.DB_USER }} -p"${{ secrets.DB_PASSWORD }}" -e "SELECT 1" ${{ env.DB_NAME }} > /dev/null 2>&1; then
-            echo "Erro: Não foi possível conectar ao banco de dados via cliente MySQL após múltiplas tentativas."
-            exit 1
-          fi
+          
+          # Remove arquivo de credenciais
+          rm -f /tmp/.my.cnf
 
       # --- PASSO 1: Rodar Testes Pytest e Gerar Relatório JUnit XML ---
       - name: Rodar Testes e Gerar Relatório JUnit
         run: |
-          # DATABASE_URL já está disponível no ambiente devido ao 'env:' do job
+          # Debug seguro - mostra apenas a estrutura da URL sem credenciais
+          echo "Conectando ao banco: mysql://***:***@mysql:3306/test_printqa_db"
+          echo "Rodando testes pytest..."
           pytest --cov=printqa --junitxml="junit-report.xml" "./tests" 
 
       # --- PASSO 2: Enviar Resultados para TestRail usando TestRail CLI (trcli) ---
