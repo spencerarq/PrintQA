@@ -11,7 +11,7 @@ jobs:
     name: Testes e Análise de Qualidade
     runs-on: ubuntu-latest
     
-    # --- Adiciona banco de dados (MySQL MariaDB) ---
+    # --- Serviço MySQL com configurações otimizadas ---
     services:
       mysql:
         image: mysql:8.0 
@@ -23,10 +23,11 @@ jobs:
         ports:
           - 3306:3306 
         options: >- 
-          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-cmd="mysqladmin ping -h localhost --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=10
+          --health-retries=15
+          --health-start-period=30s
 
     env:
       TESTRAIL_HOST: ${{ secrets.TESTRAIL_URL }}
@@ -38,7 +39,7 @@ jobs:
       DB_HOST: 127.0.0.1 
       DB_PORT: 3306 
       DB_NAME: test_printqa_db 
-      DATABASE_URL: "mysql+mysqlconnector://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@mysql:3306/test_printqa_db"
+      DATABASE_URL: "mysql+mysqlconnector://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@127.0.0.1:3306/test_printqa_db"
 
     steps:
       - name: Checkout do Repositório
@@ -54,67 +55,162 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt 
 
-      - name: Aguardar o banco de dados estar pronto
+      - name: Aguardar e Validar Banco de Dados
         run: |
-          echo "Aguardando o serviço MySQL..."
+          echo "Aguardando o serviço MySQL ficar disponível..."
           
-          # Aguarda o health check do MySQL service
-          for i in $(seq 1 30); do
-            if nc -z mysql 3306; then
+          # Instala ferramentas necessárias
+          sudo apt-get update -qq
+          sudo apt-get install -y netcat-openbsd mysql-client-core-8.0
+          
+          # Aguarda o serviço MySQL estar disponível na porta
+          echo "Verificando conectividade de rede..."
+          for i in $(seq 1 60); do
+            if nc -z 127.0.0.1 3306; then
               echo "MySQL está respondendo na porta 3306!"
               break
             fi
-            echo "Aguardando MySQL... (tentativa $i/30)"
+            if [ $i -eq 60 ]; then
+              echo "Timeout: MySQL não respondeu após 2 minutos"
+              exit 1
+            fi
+            echo "⏳ Aguardando MySQL... (tentativa $i/60)"
             sleep 2
           done
-
-          # Instala cliente MySQL
-          sudo apt-get update && sudo apt-get install -y mysql-client
-
-          # Testa conexão com credenciais de forma segura
-          echo "Testando conexão com o banco de dados..."
           
-          # Cria arquivo temporário com as credenciais
-          cat > /tmp/.my.cnf << EOF
-          [client]
-          host=mysql
-          port=3306
-          user=${{ secrets.DB_USER }}
-          password=${{ secrets.DB_PASSWORD }}
-          EOF
+          # Aguarda o health check interno do container
+          echo "Aguardando health check do MySQL..."
+          sleep 10
           
-          # Define permissões seguras para o arquivo de configuração
-          chmod 600 /tmp/.my.cnf
+          # Testa conexão com o banco usando variáveis de ambiente
+          echo "Testando autenticação no banco de dados..."
           
-          for i in $(seq 1 10); do
-            if mysql --defaults-file=/tmp/.my.cnf -e "SELECT 1;" test_printqa_db &>/dev/null; then
-              echo "Conexão com MySQL bem-sucedida!"
-              echo "Testando acesso ao banco test_printqa_db..."
-              mysql --defaults-file=/tmp/.my.cnf -e "USE test_printqa_db; SHOW TABLES;" &>/dev/null && echo "Acesso ao banco confirmado!" || echo "Banco existe mas sem tabelas (normal)"
+          # Função para testar conexão de forma segura
+          test_mysql_connection() {
+            mysql \
+              -h 127.0.0.1 \
+              -P 3306 \
+              -u "${DB_USER}" \
+              -p"${DB_PASSWORD}" \
+              -e "SELECT 1 as test_connection;" \
+              "${DB_NAME}" \
+              2>/dev/null
+          }
+          
+          # Tenta conectar com retry
+          for i in $(seq 1 15); do
+            if test_mysql_connection >/dev/null 2>&1; then
+              echo "Conexão com MySQL autenticada com sucesso!"
+              
+              # Verifica se o banco existe e está acessível
+              echo "Verificando acesso ao banco '${DB_NAME}'..."
+              if mysql -h 127.0.0.1 -P 3306 -u "${DB_USER}" -p"${DB_PASSWORD}" \
+                       -e "USE ${DB_NAME}; SELECT DATABASE() as current_db;" 2>/dev/null; then
+                echo "Acesso ao banco '${DB_NAME}' confirmado!"
+              else
+                echo "Banco existe mas pode estar vazio (normal para testes)"
+              fi
               break
             fi
-            echo "Tentativa $i/10 falhou, aguardando..."
+            
+            if [ $i -eq 15 ]; then
+              echo "Falha na autenticação após 15 tentativas"
+              echo "Informações de debug (sem credenciais):"
+              echo "   - Host: 127.0.0.1:3306"
+              echo "   - Database: ${DB_NAME}"
+              echo "   - User: ${DB_USER}"
+              exit 1
+            fi
+            
+            echo "Tentativa de autenticação $i/15 falhou, aguardando..."
             sleep 3
           done
           
-          # Remove arquivo de credenciais
-          rm -f /tmp/.my.cnf
+          echo "Banco de dados está pronto para os testes!"
 
       # --- PASSO 1: Rodar Testes Pytest e Gerar Relatório JUnit XML ---
       - name: Rodar Testes e Gerar Relatório JUnit
         run: |
-          # Debug seguro - mostra apenas a estrutura da URL sem credenciais
-          echo "Conectando ao banco: mysql://***:***@mysql:3306/test_printqa_db"
-          echo "Rodando testes pytest..."
-          pytest --cov=printqa --junitxml="junit-report.xml" "./tests" 
+          echo "Iniciando execução dos testes..."
+          echo "Conectando ao banco: mysql://***:***@127.0.0.1:3306/${DB_NAME}"
+          
+          # Executa os testes com timeout para evitar travamentos
+          timeout 300 pytest \
+            --cov=printqa \
+            --cov-report=html \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --junitxml="junit-report.xml" \
+            --tb=short \
+            -v \
+            "./tests" || {
+              echo "Testes falharam ou foram interrompidos por timeout"
+              exit 1
+            }
+          
+          echo "Testes executados com sucesso!"
 
-      # --- PASSO 2: Enviar Resultados para TestRail usando TestRail CLI (trcli) ---
+      # --- PASSO 2: Upload dos Artefatos de Teste ---
+      - name: Upload Relatórios de Teste
+        uses: actions/upload-artifact@v4
+        if: always()  # Sempre faz upload, mesmo se os testes falharem
+        with:
+          name: test-reports
+          path: |
+            junit-report.xml
+            htmlcov/
+            coverage.xml
+          retention-days: 30
+
+      # --- PASSO 3: Enviar Resultados para TestRail usando TestRail CLI (trcli) ---
       - name: Enviar Resultados para TestRail via CLI
+        if: success()  # Só executa se os testes passaram
         run: |
-          trcli -y \
-            -h "${{ env.TESTRAIL_HOST }}" \
+          echo "Enviando resultados para TestRail..."
+          
+          # Verifica se o arquivo de relatório existe
+          if [ ! -f "junit-report.xml" ]; then
+            echo "Arquivo junit-report.xml não encontrado"
+            exit 1
+          fi
+          
+          # Envia para TestRail com timeout
+          timeout 120 trcli -y \
+            -h "${TESTRAIL_HOST}" \
             --project "PrintQA" \
-            --username "${{ env.TESTRAIL_USERNAME }}" \
-            --password "${{ env.TESTRAIL_PASSWORD }}" \
-            parse_junit --title "Pytest Run - ${{ github.run_id }}" \
-            -f junit-report.xml
+            --username "${TESTRAIL_USERNAME}" \
+            --password "${TESTRAIL_PASSWORD}" \
+            parse_junit \
+            --title "Pytest Run - Build #${{ github.run_number }} (${{ github.sha }})" \
+            --run-description "Execução automática via GitHub Actions - Branch: ${{ github.ref_name }}" \
+            -f junit-report.xml || {
+              echo "Falha ao enviar resultados para TestRail"
+              exit 1
+            }
+          
+          echo "Resultados enviados para TestRail com sucesso!"
+
+      # --- PASSO 4: Comentário no PR com Resultados (opcional) ---
+      - name: Comentar Resultados no PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('junit-report.xml')) {
+              const comment = `## Resultados dos Testes
+              
+              Pipeline executado com sucesso!
+              - Build: #${{ github.run_number }}
+              - Commit: ${{ github.sha }}
+              - Branch: ${{ github.ref_name }}
+              
+              Relatórios disponíveis nos artefatos da execução.`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
