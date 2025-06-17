@@ -1,5 +1,4 @@
 # .github/workflows/ci.yml
-
 name: PrintQA CI/CD Pipeline
 
 on:
@@ -19,30 +18,19 @@ jobs:
 
       - name: Build and Run Docker Compose Tests
         run: |
-          # O comando 'docker-compose up' irá:
-          # 1. Iniciar o serviço 'db' (do seu docker-compose.yml).
-          # 2. Construir a imagem do serviço 'tests' (usando dockerfile.tests).
-          # 3. Rodar o serviço 'tests' que executará o 'run_local_tests.sh'.
-          # 4. --build: Garante que a imagem seja construída (e os arquivos copiados).
-          # 5. --abort-on-container-exit: Interrompe se o serviço 'tests' sair.
-          # 6. --exit-code-from tests: Usa o código de saída do serviço 'tests' para o status do workflow.
           docker-compose up --build --abort-on-container-exit --exit-code-from tests
         env:
-          
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          
           DB_NAME: test_printqa_db
           TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
           TESTRAIL_USER: ${{ secrets.TESTRAIL_USER }}
           TESTRAIL_KEY: ${{ secrets.TESTRAIL_KEY }}
-         
 
       - name: Upload Relatório de Testes
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pytest-reports
-          path: reports/junit-report.xml 
-
+          path: reports/junit-report.xml
           retention-days: 7
