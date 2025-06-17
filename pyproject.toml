@@ -1,0 +1,5 @@
+[tool.mutmut]
+paths_to_mutate = ["printqa/"] # Pasta onde seu código principal reside
+paths_to_exclude = ["printqa/__init__.py", "printqa/main.py"] # Exclua arquivos que não contêm lógica de negócios complexa
+tests_dir = "tests/" # Onde seus testes estão
+# Adicione mais opções conforme necessário, como mutators_exclude para desativar mutadores específicos

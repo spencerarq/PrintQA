@@ -1,4 +1,3 @@
-# printqa/__init__.py
 """
 PrintQA - Sistema de análise de qualidade para arquivos 3D
 Este arquivo define a versão do pacote e fornece utilitários de diagnóstico.
@@ -9,7 +8,6 @@ __version__ = "1.0.0"
 def check_config():
     """
     Verifica se as configurações de ambiente essenciais estão presentes.
-
     Útil para diagnóstico rápido do ambiente de desenvolvimento antes de rodar a aplicação.
     """
     import os
@@ -38,11 +36,13 @@ def check_config():
 
         display_value = value
         if key == 'DATABASE_URL' and value:
+            # Garante que display_value seja uma string antes de fatiar
             display_value = str(value)[:30] + "..."
         elif key == 'TESTRAIL_KEY' and value:
             display_value = '********'
         
-        print(f"{status: <15} {key}")
+        # --- LINHA CORRIGIDA AQUI! AGORA INCLUI display_value ---
+        print(f"{status: <15} {key}: {display_value}") 
 
     print("-----------------------------------------------------")
     if not is_db_ok:

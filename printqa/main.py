@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas, database
 from .analysis import analyze_file
 
-models.Base.metadata.create_all(bind=database.engine)
+# models.Base.metadata.create_all(bind=database.engine) # <-- ESTA LINHA FOI REMOVIDA/COMENTADA
+
 logger = logging.getLogger(__name__)
 app = FastAPI(title="PrintQA Mesh Analysis API", version="1.1.0")
 

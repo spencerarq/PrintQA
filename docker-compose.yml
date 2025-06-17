@@ -48,15 +48,12 @@ services:
       context: .
       dockerfile: dockerfile.tests
       args:
-        # Passar UID/GID para manter consistência
         USER_ID: ${USER_ID:-1001}
         GROUP_ID: ${GROUP_ID:-1001}
     env_file:
       - ./.env
     environment:
-      # O container de testes também se conecta ao banco 'db'
       DATABASE_URL: mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
-      # Passa as credenciais do TestRail para os testes
       TESTRAIL_HOST: ${TESTRAIL_URL}
       TESTRAIL_USERNAME: ${TESTRAIL_USER}
       TESTRAIL_PASSWORD: ${TESTRAIL_KEY}
@@ -64,10 +61,9 @@ services:
       db:
         condition: service_healthy
     volumes:
-      # Mapeia a pasta de relatórios para que você possa acessá-los na sua máquina
       - ./reports:/app/reports:rw
-    # Garantir que o usuário seja consistente
     user: "${USER_ID:-1001}:${GROUP_ID:-1001}"
+    command: /app/app/run_local_tests.sh # 
 
 volumes:
   db_data:

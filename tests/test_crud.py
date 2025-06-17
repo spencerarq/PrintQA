@@ -1,4 +1,4 @@
-# tests/test_crud.py
+# tests/test_crud.py (versão final)
 
 import pytest
 from sqlalchemy.orm import Session
@@ -23,9 +23,21 @@ def test_get_analysis_results_with_filters(db_session: Session):
     crud.create_analysis_result(db_session, schemas.AnalysisResultCreate(file_name="p2.stl", is_watertight=True, has_inverted_faces=True))
     crud.create_analysis_result(db_session, schemas.AnalysisResultCreate(file_name="p3.stl", is_watertight=False, has_inverted_faces=False))
     
-    results = crud.get_analysis_results(db=db_session, watertight_only=True)
-    assert len(results) >= 2
-    assert all(r.is_watertight for r in results)
+    # Testa o filtro watertight_only
+    results_watertight = crud.get_analysis_results(db=db_session, watertight_only=True)
+    assert len(results_watertight) >= 2
+    assert all(r.is_watertight for r in results_watertight)
+
+    # Testa no_inverted_faces_only=True (queremos has_inverted_faces=False)
+    results_no_inverted = crud.get_analysis_results(db=db_session, no_inverted_faces_only=True)
+    assert len(results_no_inverted) >= 2
+    assert all(r.has_inverted_faces is False for r in results_no_inverted)
+
+    # Testa no_inverted_faces_only=False (queremos has_inverted_faces=True)
+    results_with_inverted = crud.get_analysis_results(db=db_session, no_inverted_faces_only=False)
+    assert len(results_with_inverted) >= 1
+    assert all(r.has_inverted_faces is True for r in results_with_inverted)
+    # FIM DA ALTERAÇÃO
 
 def test_get_analysis_result_by_filename(db_session: Session):
     """Testa a busca de resultado pelo nome do arquivo."""
@@ -61,3 +73,19 @@ def test_update_analysis_result(db_session: Session):
     assert updated is not None
     assert updated.is_watertight is True
     assert updated.has_inverted_faces is False
+
+def test_delete_nonexistent_result(db_session: Session):
+    """
+    Testa a tentativa de remoção de um resultado que não existe.
+    Cobre a linha `return False` em `delete_analysis_result`.
+    """
+    deleted = crud.delete_analysis_result(db=db_session, result_id=999999)
+    assert deleted is False
+
+def test_update_nonexistent_result(db_session: Session):
+    """
+    Testa a tentativa de atualização de um resultado que não existe.
+    Cobre a linha `return None` em `update_analysis_result`.
+    """
+    updated = crud.update_analysis_result(db=db_session, result_id=999999, is_watertight=True)
+    assert updated is None

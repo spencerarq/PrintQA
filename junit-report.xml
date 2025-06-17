@@ -1,1 +1,311 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="54" time="3.729" timestamp="2025-06-15T11:06:05.136618-03:00" hostname="DESKTOP-OVVAVHT"><testcase classname="tests.test__init__" name="test_init_database_success" time="0.005" /><testcase classname="tests.test__init__" name="test_init_database_failure" time="0.002" /><testcase classname="tests.test__init__" name="test_check_config_with_all_vars" time="0.009" /><testcase classname="tests.test__init__" name="test_check_config_missing_database_url" time="0.007" /><testcase classname="tests.test__init__" name="test_check_config_partial_vars" time="0.007" /><testcase classname="tests.test__init__" name="test_version_import" time="0.001" /><testcase classname="tests.test_analysis" name="test_analyze_file_returns_a_dictionary" time="0.008" /><testcase classname="tests.test_analysis" name="test_analyze_file_raises_error_for_nonexistent_file" time="0.002" /><testcase classname="tests.test_analysis" name="test_analyze_file_identifies_watertight_mesh" time="0.006" /><testcase classname="tests.test_analysis" name="test_analyze_file_identifies_non_watertight_mesh" time="0.005" /><testcase classname="tests.test_analysis" name="test_analyze_file_identifies_inverted_faces" time="0.005" /><testcase classname="tests.test_analysis" name="test_analyze_file_handles_invalid_file_format" time="0.003" /><testcase classname="tests.test_analysis_with_testrail.TestAnalysisWithTestrail" name="test_analyze_file_returns_dictionary" time="0.002" /><testcase classname="tests.test_analysis_with_testrail.TestAnalysisWithTestrail" name="test_analyze_nonexistent_file" time="0.002" /><testcase classname="tests.test_analysis_with_testrail.TestAnalysisWithTestrail" name="test_watertight_mesh_detection" time="0.001" /><testcase classname="tests.test_analysis_with_testrail.TestAnalysisWithTestrail" name="test_non_watertight_mesh_detection" time="0.002" /><testcase classname="tests.test_analysis_with_testrail.TestAnalysisWithTestrail" name="test_inverted_faces_detection" time="0.002" /><testcase classname="tests.test_api" name="test_read_root" time="0.034" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_invalid_file_format" time="0.013" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_valid_stl_file" time="0.015" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_internal_server_error_on_file_save" time="0.013" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_internal_server_error_on_analysis_unexpected_exception" time="0.010" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_file_cleanup_error" time="0.012" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_file_not_found_error_on_upload_creation" time="0.087" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_unsupported_mime_type" time="0.008" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_payload_too_large" time="0.148" /><testcase classname="tests.test_api" name="test_analyze_model_endpoint_empty_file" time="0.010" /><testcase classname="tests.test_api" name="test_analyze_model_internal_error_on_file_read" time="0.011" /><testcase classname="tests.test_crud" name="test_create_analysis_result_basic" time="0.119" /><testcase classname="tests.test_crud" name="test_create_analysis_result_with_all_fields" time="0.010" /><testcase classname="tests.test_crud" name="test_get_analysis_result" time="0.018" /><testcase classname="tests.test_crud" name="test_get_analysis_result_not_found" time="0.009" /><testcase classname="tests.test_crud" name="test_get_analysis_result_by_filename" time="0.121" /><testcase classname="tests.test_crud" name="test_get_analysis_result_by_filename_not_found" time="0.008" /><testcase classname="tests.test_crud" name="test_get_analysis_results_no_filters" time="0.062" /><testcase classname="tests.test_crud" name="test_get_analysis_results_with_pagination" time="0.072" /><testcase classname="tests.test_crud" name="test_get_analysis_results_watertight_filter" time="0.032" /><testcase classname="tests.test_crud" name="test_get_analysis_results_inverted_faces_filter" time="0.028" /><testcase classname="tests.test_crud" name="test_get_analysis_statistics_empty_db" time="0.034" /><testcase classname="tests.test_crud" name="test_get_analysis_statistics_with_data" time="0.049" /><testcase classname="tests.test_crud" name="test_delete_analysis_result_success" time="0.020" /><testcase classname="tests.test_crud" name="test_delete_analysis_result_not_found" time="0.009" /><testcase classname="tests.test_crud" name="test_update_analysis_result_success" time="0.021" /><testcase classname="tests.test_crud" name="test_update_analysis_result_not_found" time="0.007" /><testcase classname="tests.test_crud" name="test_update_analysis_result_invalid_field" time="0.022" /><testcase classname="tests.test_database" name="test_env_loading" time="0.001" /><testcase classname="tests.test_database" name="test_database_connection" time="0.053" /><testcase classname="tests.test_database" name="test_database_import" time="0.001" /><testcase classname="tests.test_database" name="test_create_tables_function_coverage" time="0.013" /><testcase classname="tests.test_database" name="test_create_analysis_result" time="0.021" /><testcase classname="tests.test_database" name="test_query_analysis_results" time="0.024" /><testcase classname="tests.test_database" name="test_model_methods" time="0.016" /><testcase classname="tests.test_database" name="test_database_url_not_defined_raises_error" time="0.011" /><testcase classname="tests.test_database" name="test_get_db_yields_session_and_closes" time="0.023" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="19" time="0.985" timestamp="2025-06-17T09:55:01.101365-03:00" hostname="DESKTOP-OVVAVHT"><testcase classname="tests.test__init__" name="test_check_config_with_database_url" time="0.009" /><testcase classname="tests.test__init__" name="test_version_import" time="0.004" /><testcase classname="tests.test_analysis" name="test_analyze_file_identifies_watertight_mesh" time="0.003"><failure message="ValueError: Falha ao carregar o arquivo: O arquivo 'cube_perfect.stl' é inválido ou está vazio.">file_path = '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+&gt;           file_size = os.path.getsize(file_path)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [WinError 3] O sistema não pode encontrar o caminho especificado: '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+printqa\analysis.py:18: FileNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+cube_perfect_path = '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+    def test_analyze_file_identifies_watertight_mesh(cube_perfect_path: str):
+        """Verifica se a análise identifica corretamente uma malha fechada."""
+&gt;       result = analyze_file(cube_perfect_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_analysis.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+            file_size = os.path.getsize(file_path)
+            mesh = trimesh.load_mesh(file_path, force='mesh')
+        except Exception as e:
+            logger.error(f"Falha ao carregar o arquivo '{file_path}': {e}")
+&gt;           raise ValueError(f"Falha ao carregar o arquivo: O arquivo '{os.path.basename(file_path)}' é inválido ou está vazio.")
+E           ValueError: Falha ao carregar o arquivo: O arquivo 'cube_perfect.stl' é inválido ou está vazio.
+
+printqa\analysis.py:22: ValueError</failure></testcase><testcase classname="tests.test_analysis" name="test_analyze_file_identifies_non_watertight_mesh" time="0.002"><failure message="ValueError: Falha ao carregar o arquivo: O arquivo 'cubo_aberto.stl' é inválido ou está vazio.">file_path = '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+&gt;           file_size = os.path.getsize(file_path)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [WinError 3] O sistema não pode encontrar o caminho especificado: '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+printqa\analysis.py:18: FileNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+cube_open_path = '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+    def test_analyze_file_identifies_non_watertight_mesh(cube_open_path: str):
+        """Verifica se a análise identifica corretamente uma malha aberta."""
+&gt;       result = analyze_file(cube_open_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_analysis.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+            file_size = os.path.getsize(file_path)
+            mesh = trimesh.load_mesh(file_path, force='mesh')
+        except Exception as e:
+            logger.error(f"Falha ao carregar o arquivo '{file_path}': {e}")
+&gt;           raise ValueError(f"Falha ao carregar o arquivo: O arquivo '{os.path.basename(file_path)}' é inválido ou está vazio.")
+E           ValueError: Falha ao carregar o arquivo: O arquivo 'cubo_aberto.stl' é inválido ou está vazio.
+
+printqa\analysis.py:22: ValueError</failure></testcase><testcase classname="tests.test_analysis" name="test_analyze_file_identifies_inverted_faces" time="0.003"><failure message="ValueError: Falha ao carregar o arquivo: O arquivo 'cubo_invertido.stl' é inválido ou está vazio.">file_path = '\\app\\tests\\fixtures\\cubo_invertido.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+&gt;           file_size = os.path.getsize(file_path)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [WinError 3] O sistema não pode encontrar o caminho especificado: '\\app\\tests\\fixtures\\cubo_invertido.stl'
+
+printqa\analysis.py:18: FileNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+cube_inverted_path = '\\app\\tests\\fixtures\\cubo_invertido.stl'
+
+    def test_analyze_file_identifies_inverted_faces(cube_inverted_path: str):
+        """Verifica se a análise identifica faces com normais invertidas."""
+&gt;       result = analyze_file(cube_inverted_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_analysis.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = '\\app\\tests\\fixtures\\cubo_invertido.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+            file_size = os.path.getsize(file_path)
+            mesh = trimesh.load_mesh(file_path, force='mesh')
+        except Exception as e:
+            logger.error(f"Falha ao carregar o arquivo '{file_path}': {e}")
+&gt;           raise ValueError(f"Falha ao carregar o arquivo: O arquivo '{os.path.basename(file_path)}' é inválido ou está vazio.")
+E           ValueError: Falha ao carregar o arquivo: O arquivo 'cubo_invertido.stl' é inválido ou está vazio.
+
+printqa\analysis.py:22: ValueError</failure></testcase><testcase classname="tests.test_analysis" name="test_analyze_file_raises_value_error_for_invalid_file" time="0.004"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'não contém uma malha 3D válida'&#10; Input: &quot;Falha ao carregar o arquivo: O arquivo 'arquivoFalhaCarregamento.stl' é inválido ou está vazio.&quot;">file_path = '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+&gt;           file_size = os.path.getsize(file_path)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [WinError 3] O sistema não pode encontrar o caminho especificado: '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'
+
+printqa\analysis.py:18: FileNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+file_load_fail_path = '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'
+
+    def test_analyze_file_raises_value_error_for_invalid_file(file_load_fail_path: str):
+        """Verifica se a função levanta ValueError para um arquivo de formato inválido."""
+        with pytest.raises(ValueError, match="não contém uma malha 3D válida"):
+&gt;           analyze_file(file_load_fail_path)
+
+tests\test_analysis.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+            file_size = os.path.getsize(file_path)
+            mesh = trimesh.load_mesh(file_path, force='mesh')
+        except Exception as e:
+            logger.error(f"Falha ao carregar o arquivo '{file_path}': {e}")
+&gt;           raise ValueError(f"Falha ao carregar o arquivo: O arquivo '{os.path.basename(file_path)}' é inválido ou está vazio.")
+E           ValueError: Falha ao carregar o arquivo: O arquivo 'arquivoFalhaCarregamento.stl' é inválido ou está vazio.
+
+printqa\analysis.py:22: ValueError
+
+During handling of the above exception, another exception occurred:
+
+file_load_fail_path = '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'
+
+    def test_analyze_file_raises_value_error_for_invalid_file(file_load_fail_path: str):
+        """Verifica se a função levanta ValueError para um arquivo de formato inválido."""
+&gt;       with pytest.raises(ValueError, match="não contém uma malha 3D válida"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'não contém uma malha 3D válida'
+E        Input: "Falha ao carregar o arquivo: O arquivo 'arquivoFalhaCarregamento.stl' é inválido ou está vazio."
+
+tests\test_analysis.py:26: AssertionError</failure></testcase><testcase classname="tests.test_analysis" name="test_analyze_file_raises_error_for_nonexistent_file" time="0.005" /><testcase classname="tests.test_analysis_with_testrail" name="test_sends_passed_result_for_perfect_mesh" time="0.004"><failure message="ValueError: Falha ao carregar o arquivo: O arquivo 'cube_perfect.stl' é inválido ou está vazio.">file_path = '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+&gt;           file_size = os.path.getsize(file_path)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [WinError 3] O sistema não pode encontrar o caminho especificado: '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+printqa\analysis.py:18: FileNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+cube_perfect_path = '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+    @pytest.mark.testrail(ids=[f"C{TEST_CASE_ID_SUCCESS}"])
+    def test_sends_passed_result_for_perfect_mesh(cube_perfect_path: str):
+        """
+        Verifica se, para uma malha perfeita, um resultado "Passed" (status_id=1)
+        é enviado para o TestRail.
+        """
+&gt;       analysis_result = analyze_file(cube_perfect_path)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_analysis_with_testrail.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+            file_size = os.path.getsize(file_path)
+            mesh = trimesh.load_mesh(file_path, force='mesh')
+        except Exception as e:
+            logger.error(f"Falha ao carregar o arquivo '{file_path}': {e}")
+&gt;           raise ValueError(f"Falha ao carregar o arquivo: O arquivo '{os.path.basename(file_path)}' é inválido ou está vazio.")
+E           ValueError: Falha ao carregar o arquivo: O arquivo 'cube_perfect.stl' é inválido ou está vazio.
+
+printqa\analysis.py:22: ValueError</failure></testcase><testcase classname="tests.test_analysis_with_testrail" name="test_sends_failed_result_for_open_mesh" time="0.003"><failure message="ValueError: Falha ao carregar o arquivo: O arquivo 'cubo_aberto.stl' é inválido ou está vazio.">file_path = '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+&gt;           file_size = os.path.getsize(file_path)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           FileNotFoundError: [WinError 3] O sistema não pode encontrar o caminho especificado: '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+printqa\analysis.py:18: FileNotFoundError
+
+During handling of the above exception, another exception occurred:
+
+cube_open_path = '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+    @pytest.mark.testrail(ids=[f"C{TEST_CASE_ID_FAILURE}"])
+    def test_sends_failed_result_for_open_mesh(cube_open_path: str):
+        """
+        Verifica se, para uma malha aberta, um resultado "Failed" (status_id=5)
+        é enviado para o TestRail.
+        """
+&gt;       analysis_result = analyze_file(cube_open_path)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_analysis_with_testrail.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+file_path = '\\app\\tests\\fixtures\\cubo_aberto.stl'
+
+    def analyze_file(file_path: str) -&gt; dict:
+        """
+        Carrega um modelo 3D, analisa suas propriedades e retorna um dicionário com os resultados.
+        """
+        logger.info(f"Iniciando análise para o arquivo: {file_path}")
+        start_time = time.monotonic()
+    
+        try:
+            file_size = os.path.getsize(file_path)
+            mesh = trimesh.load_mesh(file_path, force='mesh')
+        except Exception as e:
+            logger.error(f"Falha ao carregar o arquivo '{file_path}': {e}")
+&gt;           raise ValueError(f"Falha ao carregar o arquivo: O arquivo '{os.path.basename(file_path)}' é inválido ou está vazio.")
+E           ValueError: Falha ao carregar o arquivo: O arquivo 'cubo_aberto.stl' é inválido ou está vazio.
+
+printqa\analysis.py:22: ValueError</failure></testcase><testcase classname="tests.test_api" name="test_analyze_mesh_success_and_persistence" time="0.048"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '\\app\\tests\\fixtures\\cube_perfect.stl'">client = &lt;starlette.testclient.TestClient object at 0x0000025059FC5E80&gt;
+db_session = &lt;sqlalchemy.orm.session.Session object at 0x000002505A0ADBE0&gt;, cube_perfect_path = '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+    def test_analyze_mesh_success_and_persistence(client: TestClient, db_session: Session, cube_perfect_path: str):
+        """Testa o fluxo completo e bem-sucedido para o endpoint /analyze_mesh/."""
+&gt;       with open(cube_perfect_path, "rb") as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '\\app\\tests\\fixtures\\cube_perfect.stl'
+
+tests\test_api.py:13: FileNotFoundError</failure></testcase><testcase classname="tests.test_api" name="test_upload_empty_file_returns_400" time="0.011" /><testcase classname="tests.test_api" name="test_upload_invalid_content_file_returns_400" time="0.004"><failure message="FileNotFoundError: [Errno 2] No such file or directory: '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'">client = &lt;starlette.testclient.TestClient object at 0x0000025059FC5E80&gt;
+file_load_fail_path = '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'
+
+    def test_upload_invalid_content_file_returns_400(client: TestClient, file_load_fail_path: str):
+        """Testa se o upload de um arquivo com conteúdo inválido retorna um erro 400."""
+&gt;       with open(file_load_fail_path, "rb") as f:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '\\app\\tests\\fixtures\\arquivoFalhaCarregamento.stl'
+
+tests\test_api.py:34: FileNotFoundError</failure></testcase><testcase classname="tests.test_crud" name="test_create_and_get_analysis_result" time="0.025" /><testcase classname="tests.test_crud" name="test_get_analysis_results_with_filters" time="0.023" /><testcase classname="tests.test_crud" name="test_get_analysis_result_by_filename" time="0.018" /><testcase classname="tests.test_crud" name="test_get_statistics" time="0.042" /><testcase classname="tests.test_crud" name="test_delete_analysis_result" time="0.012" /><testcase classname="tests.test_crud" name="test_update_analysis_result" time="0.020" /><testcase classname="tests.test_database" name="test_database_connection" time="0.013" /></testsuite></testsuites>

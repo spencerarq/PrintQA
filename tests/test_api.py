@@ -5,6 +5,7 @@ import io
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from printqa import crud
+from unittest.mock import patch
 
 pytestmark = [pytest.mark.api, pytest.mark.integration]
 
@@ -36,3 +37,13 @@ def test_upload_invalid_content_file_returns_400(client: TestClient, file_load_f
 
     assert response.status_code == 400
     assert "não contém uma malha 3D válida" in response.json()["detail"]
+
+def test_analyze_mesh_internal_server_error(client, cube_perfect_path):
+    """ Testa se um erro 500 é retornado quando uma exceção inesperada ocorre. Isso cobre o bloco 'except Exception' em main.py."""
+    # Usamos patch para forçar a função 'analyze_file' a levantar um erro genérico
+    with patch("printqa.main.analyze_file", side_effect=Exception("Crash inesperado!")):
+        with open(cube_perfect_path, "rb") as f:
+            response = client.post("/analyze_mesh/", files={"file": ("cube.stl", f, "model/stl")})
+            
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Erro interno inesperado."}

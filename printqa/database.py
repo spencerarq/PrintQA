@@ -1,21 +1,27 @@
 # printqa/database.py
 import os
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base 
-from dotenv import load_dotenv 
+from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
 
-load_dotenv() 
+logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL is None:
-    
     raise ValueError("DATABASE_URL não está definida nas variáveis de ambiente. Verifique o arquivo .env")
-    
-engine = create_engine(DATABASE_URL, echo=True)
 
-Base = declarative_base() 
+try:
+    engine = create_engine(DATABASE_URL, echo=True)
+except Exception as e:
+    logger.error(f"Falha ao criar o engine do SQLAlchemy: {e}")
+    raise
+
+Base = declarative_base() # A ÚNICA Base do projeto
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -26,16 +32,20 @@ def get_db():
     """
     db = SessionLocal()
     try:
-        yield db 
+        yield db
     finally:
-        db.close() 
+        db.close()
 
-def create_tables():
-    """Cria todas as tabelas no banco de dados."""
-    from . import models 
-    Base.metadata.create_all(bind=engine)
+# Modificado para aceitar 'target_base' como argumento
+def create_tables(target_base, engine_to_use=None):
+    """Cria todas as tabelas no banco de dados para a Base fornecida."""
+    current_engine = engine_to_use if engine_to_use is not None else engine
+    from . import models # Garante que os modelos estejam carregados para popular target_base.metadata
+    target_base.metadata.create_all(bind=current_engine)
 
-def drop_tables():
-    """Remove todas as tabelas do banco de dados. Use com cuidado!"""
-    from . import models 
-    Base.metadata.drop_all(bind=engine)
+# Modificado para aceitar 'target_base' como argumento
+def drop_tables(target_base, engine_to_use=None):
+    """Remove todas as tabelas do banco de dados para a Base fornecida."""
+    current_engine = engine_to_use if engine_to_use is not None else engine
+    from . import models # Garante que os modelos estejam carregados para popular target_base.metadata
+    target_base.metadata.drop_all(bind=current_engine)
