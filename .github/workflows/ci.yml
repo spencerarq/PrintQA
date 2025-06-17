@@ -1,4 +1,5 @@
 # .github/workflows/ci.yml
+
 name: PrintQA CI/CD Pipeline
 
 on:
@@ -16,6 +17,10 @@ jobs:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
 
+      # ESTE PASSO É ESSENCIAL PARA O FUNCIONAMENTO DA PIPELINE
+      - name: Setup Docker
+        uses: docker/setup-docker@v4 # <-- MANTENHA ESTA LINHA
+
       - name: Create .env file for tests
         run: |
           cat > .env << EOF
@@ -30,12 +35,22 @@ jobs:
       - name: Set execute permissions for scripts
         run: |
           find . -name "*.sh" -type f -exec chmod +x {} \;
-          # Ou especificamente para o seu script:
-          # chmod +x ./app/run_local_tests.sh
+
+      - name: Create reports directory and set permissions
+        run: |
+          mkdir -p reports
+          chmod -R 777 reports
 
       - name: Build and Run Docker Compose Tests
         run: |
           docker compose up --build --abort-on-container-exit --exit-code-from tests
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: test_printqa_db
+          TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
+          TESTRAIL_USER: ${{ secrets.TESTRAIL_USER }}
+          TESTRAIL_KEY: ${{ secrets.TESTRAIL_KEY }}
 
       - name: Upload Relatório de Testes
         uses: actions/upload-artifact@v4
