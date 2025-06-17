@@ -16,16 +16,20 @@ jobs:
       - name: Checkout do Repositório
         uses: actions/checkout@v4
 
+      - name: Create .env file for tests
+        run: |
+          cat > .env << EOF
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_NAME=test_printqa_db
+          TESTRAIL_URL=${{ secrets.TESTRAIL_URL }}
+          TESTRAIL_USER=${{ secrets.TESTRAIL_USER }}
+          TESTRAIL_KEY=${{ secrets.TESTRAIL_KEY }}
+          EOF
+
       - name: Build and Run Docker Compose Tests
         run: |
           docker compose up --build --abort-on-container-exit --exit-code-from tests
-        env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: test_printqa_db
-          TESTRAIL_URL: ${{ secrets.TESTRAIL_URL }}
-          TESTRAIL_USER: ${{ secrets.TESTRAIL_USER }}
-          TESTRAIL_KEY: ${{ secrets.TESTRAIL_KEY }}
 
       - name: Upload Relatório de Testes
         uses: actions/upload-artifact@v4
