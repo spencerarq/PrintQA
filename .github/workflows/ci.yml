@@ -18,7 +18,7 @@ jobs:
 
       - name: Build and Run Docker Compose Tests
         run: |
-          docker-compose up --build --abort-on-container-exit --exit-code-from tests
+          docker compose up --build --abort-on-container-exit --exit-code-from tests
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
