@@ -27,6 +27,12 @@ jobs:
           TESTRAIL_KEY=${{ secrets.TESTRAIL_KEY }}
           EOF
 
+      - name: Set execute permissions for scripts
+        run: |
+          find . -name "*.sh" -type f -exec chmod +x {} \;
+          # Ou especificamente para o seu script:
+          # chmod +x ./app/run_local_tests.sh
+
       - name: Build and Run Docker Compose Tests
         run: |
           docker compose up --build --abort-on-container-exit --exit-code-from tests
