@@ -1,5 +1,4 @@
 # docker-compose.yml
-
 services:
   # Serviço do Banco de Dados
   db:
@@ -12,6 +11,8 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
+      # Suprimir warning do log-bin
+      MARIADB_AUTO_UPGRADE: 1
     ports:
       - "3306:3306"
     volumes:
@@ -24,11 +25,12 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    command: --log-bin=mysql-bin --expire-logs-days=7
 
   # Serviço da API Principal (Produção)
   api:
     # Constrói a imagem a partir do Dockerfile na raiz do projeto
-    build: . 
+    build: .
     ports:
       - "8000:8000"
     env_file:
@@ -45,6 +47,10 @@ services:
     build:
       context: .
       dockerfile: dockerfile.tests
+      args:
+        # Passar UID/GID para manter consistência
+        USER_ID: ${USER_ID:-1001}
+        GROUP_ID: ${GROUP_ID:-1001}
     env_file:
       - ./.env
     environment:
@@ -59,7 +65,9 @@ services:
         condition: service_healthy
     volumes:
       # Mapeia a pasta de relatórios para que você possa acessá-los na sua máquina
-      - ./reports:/app/reports
+      - ./reports:/app/reports:rw
+    # Garantir que o usuário seja consistente
+    user: "${USER_ID:-1001}:${GROUP_ID:-1001}"
 
 volumes:
   db_data:

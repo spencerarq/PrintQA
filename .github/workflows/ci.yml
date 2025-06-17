@@ -25,11 +25,28 @@ jobs:
           TESTRAIL_URL=${{ secrets.TESTRAIL_URL }}
           TESTRAIL_USER=${{ secrets.TESTRAIL_USER }}
           TESTRAIL_KEY=${{ secrets.TESTRAIL_KEY }}
+          # Definir UID/GID para consistência no CI
+          USER_ID=1001
+          GROUP_ID=1001
           EOF
+
+      - name: Create reports directory with proper permissions
+        run: |
+          mkdir -p reports
+          chmod 777 reports
 
       - name: Build and Run Docker Compose Tests
         run: |
+          # Exportar variáveis para docker-compose
+          export USER_ID=1001
+          export GROUP_ID=1001
           docker compose up --build --abort-on-container-exit --exit-code-from tests
+
+      - name: Fix reports permissions (if needed)
+        if: always()
+        run: |
+          sudo chown -R runner:docker reports/ 2>/dev/null || true
+          chmod -R 644 reports/*.xml 2>/dev/null || true
 
       - name: Upload Relatório de Testes
         uses: actions/upload-artifact@v4
@@ -38,3 +55,9 @@ jobs:
           name: pytest-reports
           path: reports/junit-report.xml
           retention-days: 7
+
+      - name: Debug - List reports directory
+        if: always()
+        run: |
+          echo "Contents of reports directory:"
+          ls -la reports/ || echo "Reports directory not found"

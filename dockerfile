@@ -1,4 +1,4 @@
-# Dockerfile
+# Dockerfile - Versão refatorada
 
 # --- Estágio 1: Builder ---
 FROM python:3.12-slim-bookworm AS builder
@@ -12,14 +12,16 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore && \
+    pip install --no-cache-dir -r requirements.txt --root-user-action=ignore
 
 # --- Estágio 2: Imagem Final de Produção ---
 FROM python:3.12-slim-bookworm
 WORKDIR /app
 
-RUN addgroup --system app && adduser --system --group app
+# Criar usuário com UID/GID consistentes
+RUN groupadd --gid 1001 app && \
+    useradd --uid 1001 --gid 1001 --create-home --shell /bin/bash app
 
 COPY --from=builder /opt/venv /opt/venv
 

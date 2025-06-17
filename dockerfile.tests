@@ -1,6 +1,10 @@
-# dockerfile.tests - Versão melhorada
+# dockerfile.tests - Versão refatorada para reprodutibilidade
 
 FROM python:3.12-slim-bookworm
+
+# Args para UID/GID dinâmicos
+ARG USER_ID=1001
+ARG GROUP_ID=1001
 
 WORKDIR /app
 
@@ -15,9 +19,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 # Copiar requirements de desenvolvimento se existir
 COPY requirements-dev.txt* ./
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    (pip install --no-cache-dir -r requirements-dev.txt 2>/dev/null || true)
+RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore && \
+    pip install --no-cache-dir -r requirements.txt --root-user-action=ignore && \
+    (pip install --no-cache-dir -r requirements-dev.txt --root-user-action=ignore 2>/dev/null || true)
+
+# --- Criar usuário com UID/GID específicos ---
+RUN groupadd --gid ${GROUP_ID} testuser && \
+    useradd --uid ${USER_ID} --gid ${GROUP_ID} --create-home --shell /bin/bash testuser
 
 # --- Cópia do Código da Aplicação e Testes ---
 COPY ./printqa ./printqa
@@ -26,10 +34,19 @@ COPY ./scripts ./scripts
 COPY ./app ./app
 COPY pytest.ini .
 COPY conftest.py .
-RUN mkdir -p /app/reports
-# --- Criar usuário não-root para segurança ---
-RUN addgroup --system testuser && adduser --system --group testuser
+
+# --- Criar diretório de relatórios com permissões adequadas ---
+RUN mkdir -p /app/reports && \
+    chmod 755 /app/reports
+
+# --- Dar permissões de execução aos scripts ---
 RUN chmod +x ./app/*.sh
+
+# --- Ajustar propriedades dos arquivos ---
 RUN chown -R testuser:testuser /app
+
+# --- Mudar para usuário não-root ---
 USER testuser
+
+# --- Configurar ponto de entrada ---
 ENTRYPOINT ["./app/run_local_tests.sh"]
