@@ -7,11 +7,11 @@
 
 PrintQA é uma plataforma web dedicada a elevar a qualidade e a taxa de sucesso de projetos de impressão 3D. Desenvolvida pela Print3D Labs, nossa ferramenta oferece uma análise automatizada para identificar e reportar falhas em modelos 3D antes que elas se tornem impressões falhas.
 
-## STATUS DO PROJETO (Atualizado em: 15 de Junho de 2025) * 
+## STATUS DO PROJETO (Atualizado em: 17 de Junho de 2025) * 
 * [✔️] Fase 1: Concepção e Planejamento.
 * [✔️] Fase 2: Configuração de Ferramentas e Integrações.
 * [✔️] Fase 3: MVP do Backend (Lógica de Análise de Malha e Normais).
-* [✔️] **Fase 4: Desenvolvimento e Testes da API Backend com FastAPI e Persistência de Dados.** 
+* [✔️] Fase 4: Desenvolvimento e Testes da API Backend com FastAPI e Persistência de Dados.
 * [➡️] **Próxima Fase:** Configuração de Ambiente de Produção/Deploy (Docker/Kubernetes). 
 
 ## 🚀 Sobre o Projeto

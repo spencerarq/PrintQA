@@ -1,29 +1,20 @@
 # printqa/__init__.py
 """
 PrintQA - Sistema de análise de qualidade para arquivos 3D
+Este arquivo define a versão do pacote e fornece utilitários de diagnóstico.
 """
 
 __version__ = "1.0.0"
 
-# Importações controladas para evitar circular imports
-def init_database():
-    """Inicializa o banco de dados criando as tabelas necessárias."""
-    try:
-        from .database import create_tables
-        create_tables()
-        print("✓ Tabelas do banco de dados criadas com sucesso")
-        return True
-    except Exception as e:
-        print(f"✗ Erro ao criar tabelas: {e}")
-        return False
-
-# Função utilitária para verificar configuração
 def check_config():
-    """Verifica se todas as configurações necessárias estão presentes."""
+    """
+    Verifica se as configurações de ambiente essenciais estão presentes.
+
+    Útil para diagnóstico rápido do ambiente de desenvolvimento antes de rodar a aplicação.
+    """
     import os
     from dotenv import load_dotenv
     
-
     load_dotenv()
     
     config_items = {
@@ -31,15 +22,32 @@ def check_config():
         'TESTRAIL_URL': os.getenv('TESTRAIL_URL'),
         'TESTRAIL_USER': os.getenv('TESTRAIL_USER'),
         'TESTRAIL_KEY': os.getenv('TESTRAIL_KEY'),
-        'TESTRAIL_PROJECT_ID': os.getenv('TESTRAIL_PROJECT_ID'),
-        'TESTRAIL_SUITE_ID': os.getenv('TESTRAIL_SUITE_ID'),
-        'TESTRAIL_RUN_ID': os.getenv('TESTRAIL_RUN_ID'),
     }
     
-    print("=== Configuração do PrintQA ===")
-    for key, value in config_items.items():
-        status = "✓" if value else "✗"
-        display_value = value if key != 'DATABASE_URL' else (value[:30] + "..." if value else None)
-        print(f"{status} {key}: {display_value}")
+    print("--- Verificação de Configuração do Ambiente PrintQA ---")
+    is_db_ok = True
     
-    return all(v is not None for v in [config_items['DATABASE_URL']])
+    for key, value in config_items.items():
+        if key == 'DATABASE_URL' and not value:
+            status = "✗ (Crítico)"
+            is_db_ok = False
+        elif value:
+            status = "✓ (Definida)"
+        else:
+            status = "○ (Opcional, não definida)"
+
+        display_value = value
+        if key == 'DATABASE_URL' and value:
+            display_value = str(value)[:30] + "..."
+        elif key == 'TESTRAIL_KEY' and value:
+            display_value = '********'
+        
+        print(f"{status: <15} {key}")
+
+    print("-----------------------------------------------------")
+    if not is_db_ok:
+        print("ERRO: DATABASE_URL não está configurada. A aplicação não conseguirá se conectar ao banco.")
+    else:
+        print("Configuração de banco de dados parece OK.")
+        
+    return is_db_ok

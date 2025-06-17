@@ -1,20 +1,25 @@
 # printqa/schemas.py
-from pydantic import BaseModel, Field, ConfigDict 
 
-class AnalysisResult(BaseModel):
-    is_watertight: bool = Field(..., description="Indica se a malha do modelo é estanque (fechada).")
-    has_inverted_faces: bool = Field(..., description="Indica se a malha do modelo possui faces com normais invertidas.")
-    
-    model_config = ConfigDict(json_schema_extra={ 
-        "example": {
-            "is_watertight": True,
-            "has_inverted_faces": False
-        }
-    })
+from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from datetime import datetime
 
 class ErrorResponse(BaseModel):
-    detail: str = Field(..., description="Mensagem de erro detalhada.")
-    
-    model_config = ConfigDict(json_schema_extra={ 
-        "example": {"detail": "Falha ao carregar o arquivo: O arquivo 'arquivo_invalido.stl' não pode ser carregado como um modelo 3D válido ou está vazio."}
-    })
+    detail: str
+
+class AnalysisResultBase(BaseModel):
+    file_name: str
+    is_watertight: bool
+    has_inverted_faces: bool
+    file_size: Optional[int] = None
+    vertices_count: Optional[int] = None
+    faces_count: Optional[int] = None
+    analysis_duration: Optional[int] = None
+
+class AnalysisResultCreate(AnalysisResultBase):
+    pass
+
+class AnalysisResult(AnalysisResultBase):
+    id: int
+    timestamp: datetime
+    model_config = ConfigDict(from_attributes=True)

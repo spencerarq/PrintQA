@@ -1,11 +1,13 @@
 # docker-compose.yml
 
 services:
+  # Serviço do Banco de Dados
   db:
     image: mariadb:10.6
     env_file:
       - ./.env
     environment:
+      # As senhas e nomes são lidos do arquivo .env
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
@@ -13,53 +15,51 @@ services:
     ports:
       - "3306:3306"
     volumes:
+      # Persiste os dados do banco em um volume nomeado
       - db_data:/var/lib/mysql
     healthcheck:
+      # Garante que o banco esteja realmente pronto antes de outros serviços iniciarem
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
 
+  # Serviço da API Principal (Produção)
   api:
+    # Constrói a imagem a partir do Dockerfile na raiz do projeto
     build: . 
     ports:
       - "8000:8000"
     env_file:
       - ./.env
     environment:
+      # A API se conecta ao banco usando o nome do serviço 'db'
       DATABASE_URL: mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
     depends_on:
       db:
         condition: service_healthy
 
+  # Serviço para Execução dos Testes Automatizados
   tests:
     build:
       context: .
-      dockerfile: dockerfile.tests 
+      dockerfile: dockerfile.tests
     env_file:
       - ./.env
     environment:
-      
+      # O container de testes também se conecta ao banco 'db'
       DATABASE_URL: mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: ${DB_NAME}
-      
+      # Passa as credenciais do TestRail para os testes
       TESTRAIL_HOST: ${TESTRAIL_URL}
       TESTRAIL_USERNAME: ${TESTRAIL_USER}
       TESTRAIL_PASSWORD: ${TESTRAIL_KEY}
-      TESTRAIL_PROJECT_ID: ${TESTRAIL_PROJECT_ID}
-      TESTRAIL_SUITE_ID: ${TESTRAIL_SUITE_ID}
-      TESTRAIL_RUN_ID: ${TESTRAIL_RUN_ID}
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - ./reports:/app/reports  
-    command: ["./run_local_tests.sh"]
+      # Mapeia a pasta de relatórios para que você possa acessá-los na sua máquina
+      - ./reports:/app/reports
 
 volumes:
   db_data:

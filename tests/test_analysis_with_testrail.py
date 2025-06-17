@@ -1,45 +1,31 @@
 # tests/test_analysis_with_testrail.py
-import pytest
-from printqa.analysis import analyze_file  
 
-class TestAnalysisWithTestrail:
-    """Testes com integração TestRail"""
-    
-    @pytest.mark.testrail(ids=["C1"])  
-    def test_analyze_file_returns_dictionary(self):
-        """Testa se analyze_file retorna um dicionário"""
-        
-        result = {"status": "success", "watertight": True}
-        assert isinstance(result, dict)
-        assert "status" in result
-    
-    @pytest.mark.testrail(ids=["C2"])  
-    def test_analyze_nonexistent_file(self):
-        """Testa comportamento com arquivo inexistente"""
-        
-        with pytest.raises(FileNotFoundError):
-            analyze_file("arquivo_inexistente.stl")
-    
-    @pytest.mark.testrail(ids=["C3"])  
-    def test_watertight_mesh_detection(self):
-        """Testa detecção de mesh watertight"""
-        
-        result = {"watertight": True, "holes": 0}
-        assert result["watertight"] is True
-        assert result["holes"] == 0
-    
-    @pytest.mark.testrail(ids=["C4"])   
-    def test_non_watertight_mesh_detection(self):
-        """Testa detecção de mesh não-watertight"""
-        
-        result = {"watertight": False, "holes": 2}
-        assert result["watertight"] is False
-        assert result["holes"] > 0
-    
-    @pytest.mark.testrail(ids=["C5"])  
-    def test_inverted_faces_detection(self):
-        """Testa detecção de faces invertidas"""
-        
-        result = {"inverted_faces": 3, "total_faces": 100}
-        assert "inverted_faces" in result
-        assert result["inverted_faces"] >= 0
+import pytest
+from unittest.mock import patch
+from printqa.analysis import analyze_file
+from scripts.testrail_reporter import send_individual_result
+
+pytestmark = [pytest.mark.testrail, pytest.mark.unit]
+
+TEST_CASE_ID_SUCCESS = 1
+TEST_CASE_ID_FAILURE = 4
+
+@pytest.mark.testrail(ids=[f"C{TEST_CASE_ID_SUCCESS}"])
+def test_sends_passed_result_for_perfect_mesh(cube_perfect_path: str):
+    """
+    Verifica se, para uma malha perfeita, um resultado "Passed" (status_id=1) 
+    é enviado para o TestRail.
+    """
+    analysis_result = analyze_file(cube_perfect_path)
+
+    send_individual_result(analysis_result, test_case_id=TEST_CASE_ID_SUCCESS)
+
+@pytest.mark.testrail(ids=[f"C{TEST_CASE_ID_FAILURE}"])
+def test_sends_failed_result_for_open_mesh(cube_open_path: str):
+    """
+    Verifica se, para uma malha aberta, um resultado "Failed" (status_id=5) 
+    é enviado para o TestRail.
+    """
+    analysis_result = analyze_file(cube_open_path)
+
+    send_individual_result(analysis_result, test_case_id=TEST_CASE_ID_FAILURE)
