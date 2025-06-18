@@ -1,25 +1,22 @@
 # docker-compose.yml
 services:
-  # Serviço do Banco de Dados
+  # Serviço do Banco de Dados Principal (para desenvolvimento/produção)
   db:
     image: mariadb:10.6
     env_file:
       - ./.env
     environment:
-      # As senhas e nomes são lidos do arquivo .env
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      # Suprimir warning do log-bin
-      MARIADB_AUTO_UPGRADE: 1
+      # Formato de LISTA: - CHAVE=VALOR
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MARIADB_AUTO_UPGRADE=1 # Esta variável é um booleano, mas pode ser passada como string
     ports:
       - "3306:3306"
     volumes:
-      # Persiste os dados do banco em um volume nomeado
       - db_data:/var/lib/mysql
     healthcheck:
-      # Garante que o banco esteja realmente pronto antes de outros serviços iniciarem
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
@@ -27,20 +24,60 @@ services:
       start_period: 30s
     command: --log-bin=mysql-bin --expire-logs-days=7
 
-  # Serviço da API Principal (Produção)
+  # Serviço do Banco de Dados para Testes (ISOLADO)
+  test_db:
+    image: mariadb:10.6
+    env_file:
+      - ./.env
+    environment:
+      # Formato de LISTA: - CHAVE=VALOR
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${TEST_DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MARIADB_AUTO_UPGRADE=1 # Esta variável é um booleano, mas pode ser passada como string
+    volumes:
+      - test_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: --log-bin=mysql-bin --expire-logs-days=7
+
+  # Serviço da API Principal (Desenvolvimento/Produção)
   api:
-    # Constrói a imagem a partir do Dockerfile na raiz do projeto
     build: .
     ports:
       - "8000:8000"
     env_file:
       - ./.env
     environment:
-      # A API se conecta ao banco usando o nome do serviço 'db'
-      DATABASE_URL: mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
+      # ATENÇÃO: Mudança para formato de LISTA, como o validador espera
+      - DATABASE_URL=mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
     depends_on:
       db:
         condition: service_healthy
+
+  # Serviço do Frontend (React/Vue)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+      # Opcional: Se você quiser hot-reloading em desenvolvimento.
+      # Remova ou comente estas linhas para builds de produção onde o build stage já gera os estáticos
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      # ATENÇÃO: Mudança para formato de LISTA, como o validador espera
+      - VITE_API_URL=http://localhost:8000 # Use 'http://api:8000' se o frontend fosse acessar a API de DENTRO do Docker Compose
+    depends_on:
+      api:
+        condition: service_started
 
   # Serviço para Execução dos Testes Automatizados
   tests:
@@ -53,17 +90,23 @@ services:
     env_file:
       - ./.env
     environment:
-      DATABASE_URL: mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
-      TESTRAIL_HOST: ${TESTRAIL_URL}
-      TESTRAIL_USERNAME: ${TESTRAIL_USER}
-      TESTRAIL_PASSWORD: ${TESTRAIL_KEY}
+      # ATENÇÃO: Mudança para formato de LISTA, como o validador espera
+      - DATABASE_URL=mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@test_db:3306/${TEST_DB_NAME}
+      - TESTRAIL_HOST=${TESTRAIL_URL}
+      - TESTRAIL_USERNAME=${TESTRAIL_USER}
+      - TESTRAIL_PASSWORD=${TESTRAIL_KEY}
+      - TESTRAIL_PROJECT_ID=${TESTRAIL_PROJECT_ID}
+      - TESTRAIL_SUITE_ID=${TESTRAIL_SUITE_ID}
+      - TESTRAIL_RUN_ID=${TESTRAIL_RUN_ID}
+      - TESTRAIL_DRY_RUN=${TESTRAIL_DRY_RUN}
     depends_on:
-      db:
+      test_db:
         condition: service_healthy
     volumes:
       - ./reports:/app/reports:rw
     user: "${USER_ID:-1001}:${GROUP_ID:-1001}"
-    command: /app/app/run_local_tests.sh # 
+    command: /app/app/run_local_tests.sh
 
 volumes:
   db_data:
+  test_db_data:

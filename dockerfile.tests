@@ -1,4 +1,4 @@
-# dockerfile.tests - Versão refatorada para reprodutibilidade
+# dockerfile.tests 
 
 FROM python:3.12-slim-bookworm
 

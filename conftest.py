@@ -1,4 +1,4 @@
-# conftest.py (versão revisada com escopo de módulo)
+# conftest.py 
 
 import pytest
 import os
@@ -39,6 +39,7 @@ def setup_database(db_engine):
     Isso garante isolamento entre os arquivos de teste.
     """
     try:
+        import printqa.models
         Base.metadata.create_all(bind=db_engine)
         logging.info(f"Tabelas criadas para o módulo.")
         yield

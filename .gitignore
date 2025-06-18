@@ -83,3 +83,4 @@ cython_debug/
 .cursorindexingignore
 
 .env
+frontend/node_modules/

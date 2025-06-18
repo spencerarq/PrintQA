@@ -46,4 +46,4 @@ def test_analyze_mesh_internal_server_error(client, cube_perfect_path):
             response = client.post("/analyze_mesh/", files={"file": ("cube.stl", f, "model/stl")})
             
     assert response.status_code == 500
-    assert response.json() == {"detail": "Erro interno inesperado."}
+    assert response.json() == {"detail": "Ocorreu um erro interno inesperado ao processar o arquivo."}

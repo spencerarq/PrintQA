@@ -8,8 +8,9 @@ on:
     branches: [ develop, main ]
 
 jobs:
+  # Job para Testes de Unidade/Integração do Backend e Análise de Qualidade
   test-and-analyze:
-    name: Testes e Análise de Qualidade
+    name: Testes e Análise de Qualidade (Backend)
     runs-on: ubuntu-latest
 
     steps:
@@ -21,11 +22,14 @@ jobs:
           cat > .env << EOF
           DB_USER=${{ secrets.DB_USER }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          DB_NAME=test_printqa_db
+          TEST_DB_NAME=${{ secrets.TEST_DB_NAME }}
           TESTRAIL_URL=${{ secrets.TESTRAIL_URL }}
           TESTRAIL_USER=${{ secrets.TESTRAIL_USER }}
           TESTRAIL_KEY=${{ secrets.TESTRAIL_KEY }}
-          # Definir UID/GID para consistência no CI
+          TESTRAIL_PROJECT_ID=${{ secrets.TESTRAIL_PROJECT_ID }}
+          TESTRAIL_SUITE_ID=${{ secrets.TESTRAIL_SUITE_ID }}
+          TESTRAIL_RUN_ID=${{ secrets.TESTRAIL_RUN_ID }}
+          TESTRAIL_DRY_RUN=${{ secrets.TESTRAIL_DRY_RUN }}
           USER_ID=1001
           GROUP_ID=1001
           EOF
@@ -36,10 +40,10 @@ jobs:
           chmod 777 reports
 
       - name: Build and Run Docker Compose Tests
+        # Este comando irá construir automaticamente todas as imagens (api, frontend, tests)
+        # e serviços de banco de dados que o serviço 'tests' depende,
+        # e então executará os testes de backend.
         run: |
-          # Exportar variáveis para docker-compose
-          export USER_ID=1001
-          export GROUP_ID=1001
           docker compose up --build --abort-on-container-exit --exit-code-from tests
 
       - name: Fix reports permissions (if needed)
@@ -61,3 +65,5 @@ jobs:
         run: |
           echo "Contents of reports directory:"
           ls -la reports/ || echo "Reports directory not found"
+
+  
