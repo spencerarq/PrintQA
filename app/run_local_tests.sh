@@ -39,6 +39,9 @@ if [ $counter -eq $timeout ]; then
     exit 1
 fi
 
+echo "--- Rodando migrations Alembic no banco de teste... ---"
+alembic upgrade head
+
 echo "--- Rodando a suíte de testes e gerando relatórios... ---"
 
 pytest --junitxml="./reports/junit-report.xml"

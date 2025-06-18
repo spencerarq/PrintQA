@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 
-// Componente para renderizar o resultado da análise de forma legível
 const AnalysisReport = ({ data }) => {
-  // Converte snake_case para Title Case e substitui _ por espaço
   const formatKey = (key) => {
     return key.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
   };
@@ -12,7 +10,7 @@ const AnalysisReport = ({ data }) => {
       <h3>📋 Relatório de Análise</h3>
       <ul>
         {Object.entries(data).map(([key, value]) => (
-          <li key={key}>
+          <li key={key} data-testid={`analysis-item-${key}`}>
             <strong>{formatKey(key)}:</strong> 
             <span>
               {typeof value === 'boolean' ? (value ? '✅ Sim' : '❌ Não') : value}
@@ -33,14 +31,10 @@ function FileUpload() {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file && (file.name.endsWith('.stl') || file.name.endsWith('.obj'))) {
-        setSelectedFile(file);
-        setAnalysisResult(null);
-        setError(null);
-    } else {
-        setSelectedFile(null);
-        setError('Por favor, selecione um arquivo .stl ou .obj');
-    }
+    const isValidFileType = file && (file.name.endsWith('.stl') || file.name.endsWith('.obj'));
+    setSelectedFile(isValidFileType ? file : null);
+    setAnalysisResult(null);
+    setError(isValidFileType ? null : 'Por favor, selecione um arquivo .stl ou .obj');
   };
 
   const handleUpload = async () => {
@@ -63,17 +57,14 @@ function FileUpload() {
       });
 
       if (!response.ok) {
-        // Tenta ler uma mensagem de erro mais detalhada do corpo da resposta
         const errJson = await response.json().catch(() => null);
-        const detail = errJson?.detail || response.statusText;
-        throw new Error(detail);
+        throw new Error(errJson?.detail || response.statusText || `HTTP error ${response.status}`);
       }
 
       const data = await response.json();
       setAnalysisResult(data);
     } catch (e) {
       console.error("Erro no upload:", e);
-      // Extrai uma mensagem mais limpa para o usuário
       const detail = e.message.includes("Failed to fetch") ? "Failed to fetch" : e.message;
       setError(`Falha ao analisar o arquivo. Verifique se o backend está rodando e acessível. Detalhe: ${detail}`);
     } finally {
@@ -89,11 +80,9 @@ function FileUpload() {
       
       <div className="upload-controls">
         <input type="file" id="file-upload" accept=".stl,.obj" onChange={handleFileChange} />
-        {/* ATRIBUTO ATUALIZADO AQUI */}
         <label htmlFor="file-upload" className="file-label" data-testid="button-choose-file">
           {selectedFile ? selectedFile.name : 'Escolher arquivo'}
         </label>
-        {/* ATRIBUTO ATUALIZADO AQUI */}
         <button onClick={handleUpload} disabled={isLoading || !selectedFile} data-testid="button-analyze-file">
           {isLoading ? 'Analisando...' : 'Analisar Arquivo'}
         </button>

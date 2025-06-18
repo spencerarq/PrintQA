@@ -1,17 +1,17 @@
 # docker-compose.yml
 services:
-  # Serviço do Banco de Dados Principal (para desenvolvimento/produção)
+  # Serviço do Banco de Dados Principal (desenvolvimento/produção)
   db:
     image: mariadb:10.6
     env_file:
       - ./.env
     environment:
-      # Formato de LISTA: - CHAVE=VALOR
+      
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASSWORD}
-      - MARIADB_AUTO_UPGRADE=1 # Esta variável é um booleano, mas pode ser passada como string
+      - MARIADB_AUTO_UPGRADE=1
     ports:
       - "3306:3306"
     volumes:
@@ -30,12 +30,12 @@ services:
     env_file:
       - ./.env
     environment:
-      # Formato de LISTA: - CHAVE=VALOR
+      
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
       - MYSQL_DATABASE=${TEST_DB_NAME}
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASSWORD}
-      - MARIADB_AUTO_UPGRADE=1 # Esta variável é um booleano, mas pode ser passada como string
+      - MARIADB_AUTO_UPGRADE=1
     volumes:
       - test_db_data:/var/lib/mysql
     healthcheck:
@@ -54,13 +54,17 @@ services:
     env_file:
       - ./.env
     environment:
-      # ATENÇÃO: Mudança para formato de LISTA, como o validador espera
+      
       - DATABASE_URL=mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - .:/app  
 
-  # Serviço do Frontend (React/Vue)
+
+
+  # Serviço do Frontend (React)
   frontend:
     build:
       context: ./frontend
@@ -68,13 +72,12 @@ services:
     ports:
       - "3000:80"
     volumes:
-      # Opcional: Se você quiser hot-reloading em desenvolvimento.
-      # Remova ou comente estas linhas para builds de produção onde o build stage já gera os estáticos
+      
       - ./frontend:/app
       - /app/node_modules
     environment:
-      # ATENÇÃO: Mudança para formato de LISTA, como o validador espera
-      - VITE_API_URL=http://localhost:8000 # Use 'http://api:8000' se o frontend fosse acessar a API de DENTRO do Docker Compose
+      
+      - VITE_API_URL=http://api:8000 
     depends_on:
       api:
         condition: service_started
@@ -90,7 +93,7 @@ services:
     env_file:
       - ./.env
     environment:
-      # ATENÇÃO: Mudança para formato de LISTA, como o validador espera
+      
       - DATABASE_URL=mysql+mysqlconnector://${DB_USER}:${DB_PASSWORD}@test_db:3306/${TEST_DB_NAME}
       - TESTRAIL_HOST=${TESTRAIL_URL}
       - TESTRAIL_USERNAME=${TESTRAIL_USER}

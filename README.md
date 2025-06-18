@@ -13,7 +13,7 @@ PrintQA é uma plataforma web dedicada a elevar a qualidade e a taxa de sucesso 
 * [✔️] Fase 2: Configuração de Ferramentas e Integrações.
 * [✔️] Fase 3: MVP do Backend (Lógica de Análise de Malha e Normais).
 * [✔️] Fase 4: Desenvolvimento e Testes da API Backend com FastAPI e Persistência de Dados.
-* [✔️] Fase 5: **Desenvolvimento e Integração do Frontend (Frontend - básico).**
+* [✔️] Fase 5: Desenvolvimento e Integração do Frontend (Frontend - básico).
 * [➡️] **Próxima Fase:** Refinamento do Frontend e Configuração de Ambiente de Produção/Deploy.
 
 ## 🚀 Sobre o Projeto

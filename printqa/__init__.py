@@ -36,12 +36,11 @@ def check_config():
 
         display_value = value
         if key == 'DATABASE_URL' and value:
-            # Garante que display_value seja uma string antes de fatiar
+            
             display_value = str(value)[:30] + "..."
         elif key == 'TESTRAIL_KEY' and value:
             display_value = '********'
         
-        # --- LINHA CORRIGIDA AQUI! AGORA INCLUI display_value ---
         print(f"{status: <15} {key}: {display_value}") 
 
     print("-----------------------------------------------------")

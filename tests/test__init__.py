@@ -9,8 +9,6 @@ def test_version_import():
     from printqa import __version__
     assert __version__ == "1.0.0"
 
-# --- Testes para a função check_config() ---
-
 def test_check_config_all_present(monkeypatch, capsys):
     """
     Testa check_config() quando todas as variáveis de ambiente (incluindo opcionais)
@@ -31,7 +29,7 @@ def test_check_config_all_present(monkeypatch, capsys):
         captured = capsys.readouterr()
         stdout_lines = captured.out.splitlines()
 
-        # ASSERÇÃO AJUSTADA PARA A URL TRUNCADA CORRETA
+        
         assert "--- Verificação de Configuração do Ambiente PrintQA ---" in stdout_lines
         assert "✓ (Definida)    DATABASE_URL: mysql://user:pass@localhost/db..." in stdout_lines # CORRIGIDO
         assert "✓ (Definida)    TESTRAIL_URL: https://testrail.example.com" in stdout_lines
@@ -89,9 +87,9 @@ def test_check_config_optional_missing(monkeypatch, capsys):
         captured = capsys.readouterr()
         stdout_lines = captured.out.splitlines()
 
-        # ASSERÇÃO AJUSTADA PARA A URL TRUNCADA CORRETA
+        
         assert "--- Verificação de Configuração do Ambiente PrintQA ---" in stdout_lines
-        assert "✓ (Definida)    DATABASE_URL: mysql://user:pass@localhost/db..." in stdout_lines # CORRIGIDO
+        assert "✓ (Definida)    DATABASE_URL: mysql://user:pass@localhost/db..." in stdout_lines
         assert "○ (Opcional, não definida) TESTRAIL_URL: None" in stdout_lines
         assert "○ (Opcional, não definida) TESTRAIL_USER: None" in stdout_lines
         assert "○ (Opcional, não definida) TESTRAIL_KEY: None" in stdout_lines
@@ -114,6 +112,6 @@ def test_check_config_database_url_truncated(monkeypatch, capsys):
         stdout_lines = captured.out.splitlines()
 
         db_url_line = [line for line in stdout_lines if "DATABASE_URL" in line][0]
-        # Esta asserção já estava correta em seu código anterior
+        
         assert "mysql+mysqlconnector://user:pa..." in db_url_line 
-        assert len(db_url_line) < len(long_db_url) + 50 # Garante que foi truncado
+        assert len(db_url_line) < len(long_db_url) + 50 

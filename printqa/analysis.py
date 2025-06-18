@@ -21,16 +21,11 @@ def analyze_file(file_path: str) -> dict:
         logger.error(f"Falha ao carregar o arquivo '{file_path}': {e}")
         raise ValueError(f"Falha ao carregar o arquivo: O arquivo '{os.path.basename(file_path)}' é inválido ou está vazio.")
 
-    # --- INÍCIO DA MUDANÇA CRÍTICA ---
-    # Lida com objetos trimesh.Scene primeiro, pois eles não possuem 'faces' diretamente.
     if isinstance(mesh, trimesh.Scene):
         if not mesh.geometry:
             raise ValueError("Cena 3D vazia, nenhum modelo para analisar.")
-        # Concatena toda a geometria em uma única malha para análise
         mesh = trimesh.util.concatenate(list(mesh.geometry.values()))
-    # --- FIM DA MUDANÇA CRÍTICA ---
 
-    # Agora, verifica se a malha resultante (que pode ser a original ou uma cena concatenada) é válida
     if not hasattr(mesh, 'faces') or len(mesh.faces) == 0:
         raise ValueError(f"O arquivo '{os.path.basename(file_path)}' não contém uma malha 3D válida.")
 

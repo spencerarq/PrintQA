@@ -9,9 +9,8 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 from pathlib import Path
 
-# Importações da aplicação
 from printqa.database import Base
-from printqa import models  # Garante que os modelos sejam registrados
+from printqa import models
 from printqa.main import app
 from fastapi.testclient import TestClient
 
@@ -67,7 +66,6 @@ def db_session(db_engine, setup_database) -> Generator[Session, None, None]:
         transaction.rollback()
         connection.close()
 
-# As fixtures abaixo permanecem as mesmas
 @pytest.fixture(scope="module")
 def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as test_client:

@@ -5,23 +5,18 @@ from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 
-# Importações dos seus módulos locais
 from . import crud, models, schemas, database
-from .analysis import analyze_file # <-- Correção aplicada aqui
+from .analysis import analyze_file
 
 # Gerenciador do Ciclo de Vida da Aplicação
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("INFO:     Criando tabelas do banco de dados...")
-    database.create_tables()
-    print("INFO:     Tabelas criadas com sucesso.")
     yield
     print("INFO:     Aplicação encerrada.")
 
-# Configuração do logger
+
 logger = logging.getLogger(__name__)
 
-# Criação da instância da aplicação FastAPI, com o 'lifespan'
 app = FastAPI(
     title="PrintQA Mesh Analysis API",
     description="API para análise de arquivos de malha 3D (.stl, .obj)",
@@ -29,7 +24,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configuração do CORS
 origins = ["http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
@@ -39,7 +33,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Endpoint principal para análise
 @app.post("/analyze_mesh/", response_model=schemas.AnalysisResult)
 async def analyze_mesh_and_save(
     db: Session = Depends(database.get_db),

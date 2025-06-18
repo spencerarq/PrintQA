@@ -8,7 +8,7 @@ on:
     branches: [ develop, main ]
 
 jobs:
-  # Job para Testes de Unidade/Integração do Backend e Análise de Qualidade
+  # Testes de Unidade/Integração do Backend e Análise de Qualidade
   test-and-analyze:
     name: Testes e Análise de Qualidade (Backend)
     runs-on: ubuntu-latest
